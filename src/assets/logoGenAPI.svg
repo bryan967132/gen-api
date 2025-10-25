@@ -1,0 +1,22 @@
+Genapi logo · SVG
+Copiar
+
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Llaves (brackets) estilizadas -->
+  <path d="M 30 30 Q 20 30 20 40 L 20 50 Q 20 55 15 55 Q 20 55 20 60 L 20 70 Q 20 80 30 80" 
+        stroke="#3B82F6" 
+        stroke-width="8" 
+        stroke-linecap="round"
+        fill="none"/>
+  
+  <path d="M 90 30 Q 100 30 100 40 L 100 50 Q 100 55 105 55 Q 100 55 100 60 L 100 70 Q 100 80 90 80" 
+        stroke="#3B82F6" 
+        stroke-width="8" 
+        stroke-linecap="round"
+        fill="none"/>
+  
+  <!-- Puntos de endpoint -->
+  <circle cx="45" cy="45" r="6" fill="#10B981"/>
+  <circle cx="75" cy="45" r="6" fill="#10B981"/>
+  <circle cx="60" cy="65" r="6" fill="#8B5CF6"/>
+</svg>
