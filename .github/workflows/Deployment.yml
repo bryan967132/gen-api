@@ -32,6 +32,9 @@ jobs:
           path: dist/
 
   deploy:
+    permissions:
+      id-token: write
+      contents: read
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
