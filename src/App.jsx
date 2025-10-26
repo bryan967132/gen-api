@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Route, Zap, Code, Settings, Download, Trash2, ChevronDown, ChevronUp, Move, Server, Globe, Hash, FileText, User, Search } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 export default function App() {
     const [apiConfig, setApiConfig] = useState({
@@ -31,7 +32,18 @@ export default function App() {
         }
     ];
 
-    const httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+    const httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+    
+    const getMethodColor = (method) => {
+        const colors = {
+            'GET': 'bg-blue-100 text-blue-700 border-blue-200',
+            'POST': 'bg-green-100 text-green-700 border-green-200',
+            'PUT': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+            'DELETE': 'bg-red-100 text-red-700 border-red-200',
+            'PATCH': 'bg-purple-100 text-purple-700 border-purple-200'
+        };
+        return colors[method] || 'bg-gray-100 text-gray-700 border-gray-200';
+    };
     
     const parameterTypes = [
         { value: 'none', label: 'Sin parámetros', icon: null },
@@ -172,9 +184,23 @@ export default function App() {
                 method: 'GET',
                 path: '/example',
                 parameterType: 'none',
-                parameters: '',
-                successCode: 'return { message: "Success", data: {} };',
-                errorCode: 'return { error: "Something went wrong", status: 500 };'
+                routeParams: [],
+                queryParams: [],
+                bodyParams: [],
+                headerParams: [],
+                successResponse: {
+                    statusCode: 200,
+                    fields: [
+                        { key: 'message', value: 'Success' },
+                        { key: 'data', value: '{}' }
+                    ]
+                },
+                errorResponse: {
+                    statusCode: 500,
+                    fields: [
+                        { key: 'error', value: 'Something went wrong' }
+                    ]
+                }
             })
         };
 
@@ -209,7 +235,14 @@ export default function App() {
                     };
 
                     if (isDescendant(routeId, movedId)) {
-                        setTimeout(() => alert('No puedes anidar una ruta dentro de su propia subruta'), 0);
+                        setTimeout(() => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Anidación Circular',
+                                text: 'No puedes anidar una ruta dentro de su propia subruta',
+                                confirmButtonColor: '#ef4444'
+                            });
+                        }, 0);
                         return prev;
                     }
                 }
@@ -273,9 +306,23 @@ export default function App() {
                     method: 'GET',
                     path: '/example',
                     parameterType: 'none',
-                    parameters: '',
-                    successCode: 'return { message: "Success", data: {} };',
-                    errorCode: 'return { error: "Something went wrong", status: 500 };'
+                    routeParams: [],
+                    queryParams: [],
+                    bodyParams: [],
+                    headerParams: [],
+                    successResponse: {
+                        statusCode: 200,
+                        fields: [
+                            { key: 'message', value: 'Success' },
+                            { key: 'data', value: '{}' }
+                        ]
+                    },
+                    errorResponse: {
+                        statusCode: 500,
+                        fields: [
+                            { key: 'error', value: 'Something went wrong' }
+                        ]
+                    }
                 };
 
                 return [
@@ -381,6 +428,120 @@ export default function App() {
         updateComponent(id, { expanded: !components.find(c => c.id === id).expanded });
     };
 
+    // Funciones para manejar parámetros dinámicos
+    const addParameter = (componentId, paramType, paramName) => {
+        if (!paramName.trim()) return;
+        
+        const component = components.find(c => c.id === componentId);
+        if (!component) return;
+        
+        const paramKey = {
+            'route': 'routeParams',
+            'query': 'queryParams',
+            'body': 'bodyParams',
+            'headers': 'headerParams'
+        }[paramType];
+        
+        if (!paramKey) return;
+        
+        // Evitar duplicados
+        if (component[paramKey].includes(paramName.trim())) {
+            return;
+        }
+        
+        updateComponent(componentId, {
+            [paramKey]: [...component[paramKey], paramName.trim()]
+        });
+    };
+
+    const removeParameter = (componentId, paramType, paramName) => {
+        const component = components.find(c => c.id === componentId);
+        if (!component) return;
+        
+        const paramKey = {
+            'route': 'routeParams',
+            'query': 'queryParams',
+            'body': 'bodyParams',
+            'headers': 'headerParams'
+        }[paramType];
+        
+        if (!paramKey) return;
+        
+        updateComponent(componentId, {
+            [paramKey]: component[paramKey].filter(p => p !== paramName)
+        });
+    };
+
+    // Funciones para manejar respuestas
+    const addResponseField = (componentId, responseType, key, value) => {
+        if (!key.trim()) return;
+        
+        const component = components.find(c => c.id === componentId);
+        if (!component) return;
+        
+        const responseKey = responseType === 'success' ? 'successResponse' : 'errorResponse';
+        const currentResponse = component[responseKey];
+        
+        // Evitar claves duplicadas
+        if (currentResponse.fields.some(f => f.key === key.trim())) {
+            return;
+        }
+        
+        updateComponent(componentId, {
+            [responseKey]: {
+                ...currentResponse,
+                fields: [...currentResponse.fields, { key: key.trim(), value: value || '' }]
+            }
+        });
+    };
+
+    const removeResponseField = (componentId, responseType, fieldKey) => {
+        const component = components.find(c => c.id === componentId);
+        if (!component) return;
+        
+        const responseKey = responseType === 'success' ? 'successResponse' : 'errorResponse';
+        const currentResponse = component[responseKey];
+        
+        updateComponent(componentId, {
+            [responseKey]: {
+                ...currentResponse,
+                fields: currentResponse.fields.filter(f => f.key !== fieldKey)
+            }
+        });
+    };
+
+    const updateResponseField = (componentId, responseType, fieldKey, newValue) => {
+        const component = components.find(c => c.id === componentId);
+        if (!component) return;
+        
+        const responseKey = responseType === 'success' ? 'successResponse' : 'errorResponse';
+        const currentResponse = component[responseKey];
+        
+        updateComponent(componentId, {
+            [responseKey]: {
+                ...currentResponse,
+                fields: currentResponse.fields.map(f => 
+                    f.key === fieldKey ? { ...f, value: newValue } : f
+                )
+            }
+        });
+    };
+
+    const updateStatusCode = (componentId, responseType, statusCode) => {
+        const component = components.find(c => c.id === componentId);
+        if (!component) return;
+        
+        const responseKey = responseType === 'success' ? 'successResponse' : 'errorResponse';
+        const currentResponse = component[responseKey];
+        
+        updateComponent(componentId, {
+            [responseKey]: {
+                ...currentResponse,
+                statusCode: parseInt(statusCode)
+            }
+        });
+    };
+
     const getFullPath = (component) => {
         if (!component.parentRoute) return component.path;
 
@@ -400,6 +561,246 @@ export default function App() {
         return getFullRoutePath(parentRoute) + route.basePath;
     };
 
+    // Validaciones de duplicados
+    const validateDuplicates = () => {
+        const errors = [];
+
+        // Validar rutas duplicadas en el mismo nivel
+        const routes = components.filter(c => c.type === 'route');
+        const routeGroups = {};
+
+        routes.forEach(route => {
+            const key = `${route.parentRoute || 'root'}_${route.basePath}`;
+            if (!routeGroups[key]) {
+                routeGroups[key] = [];
+            }
+            routeGroups[key].push(route);
+        });
+
+        Object.entries(routeGroups).forEach(([key, group]) => {
+            if (group.length > 1) {
+                const parentName = group[0].parentRoute 
+                    ? routes.find(r => r.id === group[0].parentRoute)?.name || 'Ruta padre'
+                    : 'Nivel raíz';
+                errors.push({
+                    type: 'route',
+                    message: `Ruta duplicada "${group[0].basePath}" en ${parentName} (${group.length} rutas con el mismo path)`
+                });
+            }
+        });
+
+        // Validar endpoints duplicados en el mismo nivel (mismo path y método)
+        const endpoints = components.filter(c => c.type === 'endpoint');
+        const endpointGroups = {};
+
+        endpoints.forEach(endpoint => {
+            const fullPath = getFullPath(endpoint);
+            const key = `${endpoint.method}_${fullPath}`;
+            if (!endpointGroups[key]) {
+                endpointGroups[key] = [];
+            }
+            endpointGroups[key].push(endpoint);
+        });
+
+        Object.entries(endpointGroups).forEach(([key, group]) => {
+            if (group.length > 1) {
+                errors.push({
+                    type: 'endpoint',
+                    message: `Endpoint duplicado: ${group[0].method} ${getFullPath(group[0])} (${group.length} endpoints con la misma combinación)`
+                });
+            }
+        });
+
+        // Validar que todas las rutas tengan al menos un endpoint o subruta
+        routes.forEach(route => {
+            const hasEndpoints = route.endpoints && route.endpoints.length > 0;
+            const hasSubRoutes = route.subRoutes && route.subRoutes.length > 0;
+            
+            if (!hasEndpoints && !hasSubRoutes) {
+                const routePath = getFullRoutePath(route);
+                const routeName = route.name || routePath;
+                errors.push({
+                    type: 'empty-route',
+                    message: `Ruta vacía "${routeName}" (${routePath}) - debe contener al menos un endpoint o subruta`
+                });
+            }
+        });
+
+        // Validar que las rutas anidadas tengan al menos un endpoint
+        routes.forEach(route => {
+            if (route.parentRoute) { // Es una ruta anidada
+                const hasEndpoints = route.endpoints && route.endpoints.length > 0;
+                
+                if (!hasEndpoints) {
+                    const routePath = getFullRoutePath(route);
+                    const routeName = route.name || routePath;
+                    errors.push({
+                        type: 'nested-route-no-endpoint',
+                        message: `Ruta anidada "${routeName}" (${routePath}) - debe contener al menos un endpoint`
+                    });
+                }
+            }
+        });
+
+        return errors;
+    };
+
+    const handleExportCode = async () => {
+        // Validar si hay componentes
+        if (components.length === 0) {
+            await Swal.fire({
+                icon: 'warning',
+                title: 'No hay componentes',
+                text: 'Agrega rutas y endpoints antes de generar el código',
+                confirmButtonColor: '#3b82f6'
+            });
+            return;
+        }
+
+        // Validar duplicados
+        const errors = validateDuplicates();
+        if (errors.length > 0) {
+            const errorList = errors.map(e => `- ${e.message}`).join('\n');
+            await Swal.fire({
+                icon: 'error',
+                title: 'Errores de Validación',
+                html: `<div style="text-align: left; font-size: 14px;">
+                    <p style="margin-bottom: 10px;">Se encontraron los siguientes problemas:</p>
+                    <pre style="background: #f3f4f6; padding: 12px; border-radius: 6px; max-height: 300px; overflow-y: auto;">${errorList}</pre>
+                </div>`,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#ef4444'
+            });
+            return;
+        }
+
+        // Calcular estadísticas
+        const routeCount = components.filter(c => c.type === 'route').length;
+        const endpointCount = components.filter(c => c.type === 'endpoint').length;
+        const totalRoutes = new Set(components.filter(c => c.type === 'endpoint').map(e => getFullPath(e).split('/').slice(0, -1).join('/'))).size;
+
+        // Mostrar modal de confirmación con especificaciones
+        const result = await Swal.fire({
+            title: 'Generar Código de la API',
+            html: `
+                <div style="text-align: left; padding: 10px;">
+                    <h3 style="color: #1f2937; margin-bottom: 12px; font-size: 16px;">Especificaciones:</h3>
+                    <div style="background: #f9fafb; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                        <p style="margin: 6px 0; font-size: 14px;"><strong>Nombre:</strong> ${apiConfig.name}</p>
+                        <p style="margin: 6px 0; font-size: 14px;"><strong>Puerto:</strong> ${apiConfig.port}</p>
+                        <p style="margin: 6px 0; font-size: 14px;"><strong>Descripción:</strong> ${apiConfig.description || 'Sin descripción'}</p>
+                        <p style="margin: 6px 0; font-size: 14px;"><strong>Total de rutas:</strong> ${routeCount}</p>
+                        <p style="margin: 6px 0; font-size: 14px;"><strong>Total de endpoints:</strong> ${endpointCount}</p>
+                    </div>
+                    
+                    <h3 style="color: #1f2937; margin-bottom: 12px; font-size: 16px;">Estructura de Proyecto:</h3>
+                    <div style="background: #1f2937; color: #10b981; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 13px; line-height: 1.6;">
+                        <div>mi-api/</div>
+                        <div>├── node_modules/</div>
+                        <div>├── package.json</div>
+                        <div>├── server.js          <span style="color: #6b7280;">← Código generado</span></div>
+                        <div>└── README.md</div>
+                    </div>
+                    
+                    <h3 style="color: #1f2937; margin: 15px 0 12px 0; font-size: 16px;">Instalación:</h3>
+                    <div style="background: #1f2937; color: #e5e7eb; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 13px;">
+                        <div>$ npm install express</div>
+                        <div>$ node server.js</div>
+                    </div>
+                    
+                    <p style="margin-top: 15px; color: #6b7280; font-size: 13px;">
+                        El código será copiado al portapapeles<br/>
+                        Framework: Express.js<br/>
+                        Listo para ejecutar
+                    </p>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Generar y Copiar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#6b7280',
+            width: '600px'
+        });
+
+        if (result.isConfirmed) {
+            const code = generateAPICode();
+            
+            // Copiar al portapapeles
+            try {
+                await navigator.clipboard.writeText(code);
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Código Generado',
+                    html: `
+                        <p>El código de tu API ha sido copiado al portapapeles</p>
+                        <div style="margin-top: 15px; padding: 10px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid #10b981;">
+                            <p style="margin: 5px 0; font-size: 14px;">${endpointCount} endpoints configurados</p>
+                            <p style="margin: 5px 0; font-size: 14px;">Servidor en puerto ${apiConfig.port}</p>
+                            <p style="margin: 5px 0; font-size: 14px;">Listo para pegar en server.js</p>
+                        </div>
+                    `,
+                    confirmButtonColor: '#10b981',
+                    timer: 3000
+                });
+            } catch (error) {
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Error al copiar',
+                    text: 'No se pudo copiar al portapapeles. Intenta manualmente.',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+    };
+
+    const handleClearAll = async () => {
+        if (components.length === 0) {
+            await Swal.fire({
+                icon: 'info',
+                title: 'Área vacía',
+                text: 'No hay componentes para limpiar',
+                confirmButtonColor: '#3b82f6'
+            });
+            return;
+        }
+
+        const result = await Swal.fire({
+            title: 'Eliminar Todo',
+            html: `
+                <div style="text-align: left; padding: 10px;">
+                    <p style="margin-bottom: 15px; color: #6b7280;">Esta acción eliminará:</p>
+                    <div style="background: #fef2f2; padding: 12px; border-radius: 8px; border-left: 4px solid #ef4444;">
+                        <p style="margin: 6px 0; font-size: 14px;">${components.filter(c => c.type === 'route').length} rutas</p>
+                        <p style="margin: 6px 0; font-size: 14px;">${components.filter(c => c.type === 'endpoint').length} endpoints</p>
+                        <p style="margin: 6px 0; font-size: 14px;">Toda la configuración actual</p>
+                    </div>
+                    <p style="margin-top: 15px; color: #dc2626; font-weight: 500; font-size: 14px;">Esta acción no se puede deshacer</p>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar todo',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
+            setComponents([]);
+            setSelectedComponent(null);
+            await Swal.fire({
+                icon: 'success',
+                title: 'Área Limpiada',
+                text: 'Todos los componentes han sido eliminados',
+                confirmButtonColor: '#10b981',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    };
+
     const generateAPICode = () => {
         const endpoints = components.filter(c => c.type === 'endpoint');
         
@@ -411,37 +812,83 @@ export default function App() {
             const fullPath = getFullPath(endpoint);
 
             code += `// ${endpoint.method} ${fullPath}\n`;
-            if (endpoint.parameterType !== 'none' && endpoint.parameters) {
-                code += `// Parámetros (${endpoint.parameterType}): ${endpoint.parameters}\n`;
+            
+            // Obtener los parámetros según el tipo
+            let params = [];
+            switch (endpoint.parameterType) {
+                case 'route':
+                    params = endpoint.routeParams || [];
+                    break;
+                case 'query':
+                    params = endpoint.queryParams || [];
+                    break;
+                case 'body':
+                    params = endpoint.bodyParams || [];
+                    break;
+                case 'headers':
+                    params = endpoint.headerParams || [];
+                    break;
+            }
+            
+            if (endpoint.parameterType !== 'none' && params.length > 0) {
+                code += `// Parámetros (${endpoint.parameterType}): ${params.join(', ')}\n`;
             }
 
             code += `app.${method}('${fullPath}', (req, res) => {\n`;
 
-            if (endpoint.parameterType !== 'none' && endpoint.parameters) {
+            if (endpoint.parameterType !== 'none' && params.length > 0) {
                 switch (endpoint.parameterType) {
                     case 'route':
-                        code += `  // Route params: ${endpoint.parameters}\n`;
+                        code += `  // Route params: ${params.join(', ')}\n`;
                         code += `  const routeParams = req.params;\n`;
+                        params.forEach(param => {
+                            code += `  // const ${param} = req.params.${param};\n`;
+                        });
                         break;
                     case 'query':
-                        code += `  // Query params: ${endpoint.parameters}\n`;
+                        code += `  // Query params: ${params.join(', ')}\n`;
                         code += `  const queryParams = req.query;\n`;
+                        params.forEach(param => {
+                            code += `  // const ${param} = req.query.${param};\n`;
+                        });
                         break;
                     case 'body':
-                        code += `  // Body params: ${endpoint.parameters}\n`;
+                        code += `  // Body params: ${params.join(', ')}\n`;
                         code += `  const bodyData = req.body;\n`;
+                        params.forEach(param => {
+                            code += `  // const ${param} = req.body.${param};\n`;
+                        });
                         break;
                     case 'headers':
-                        code += `  // Headers: ${endpoint.parameters}\n`;
+                        code += `  // Headers: ${params.join(', ')}\n`;
                         code += `  const headers = req.headers;\n`;
+                        params.forEach(param => {
+                            code += `  // const ${param} = req.headers['${param.toLowerCase()}'];\n`;
+                        });
                         break;
                 }
             }
 
             code += `  try {\n`;
-            code += `    ${endpoint.successCode}\n`;
+            
+            // Construir respuesta de éxito
+            const successResponse = endpoint.successResponse || { statusCode: 200, fields: [] };
+            const successObj = {};
+            successResponse.fields.forEach(field => {
+                successObj[field.key] = field.value;
+            });
+            code += `    res.status(${successResponse.statusCode}).json(${JSON.stringify(successObj, null, 4).replace(/\n/g, '\n    ')});\n`;
+            
             code += `  } catch (error) {\n`;
-            code += `    ${endpoint.errorCode}\n`;
+            
+            // Construir respuesta de error
+            const errorResponse = endpoint.errorResponse || { statusCode: 500, fields: [] };
+            const errorObj = {};
+            errorResponse.fields.forEach(field => {
+                errorObj[field.key] = field.value;
+            });
+            code += `    res.status(${errorResponse.statusCode}).json(${JSON.stringify(errorObj, null, 4).replace(/\n/g, '\n    ')});\n`;
+            
             code += `  }\n});\n\n`;
         });
 
@@ -473,21 +920,79 @@ export default function App() {
 
                 {component.parameterType !== 'none' && (
                     <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Descripción de Parámetros
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                            {component.parameterType === 'route' ? 'Route Parameters' :
+                             component.parameterType === 'query' ? 'Query Parameters' :
+                             component.parameterType === 'body' ? 'Body Parameters' :
+                             'Headers'}
                         </label>
-                        <textarea
-                            value={component.parameters}
-                            onChange={(e) => updateComponent(component.id, { parameters: e.target.value })}
-                            className="w-full px-2 py-2 border border-gray-300 rounded-md font-mono text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            rows="2"
-                            placeholder={`Ej: ${component.parameterType === 'route' ? 'id, userId' : 
-                                            component.parameterType === 'query' ? 'page, limit, search' :
-                                            component.parameterType === 'body' ? 'name, email, password' :
-                                            'authorization, content-type'}`}
-                            onClick={(e) => e.stopPropagation()}
-                            spellCheck={false}
-                        />
+                        
+                        {/* Input para agregar parámetros */}
+                        <div className="mb-2">
+                            <input
+                                type="text"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        addParameter(component.id, component.parameterType, e.target.value);
+                                        e.target.value = '';
+                                    }
+                                }}
+                                className="w-full px-2 py-2 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                                placeholder={`Presiona Enter para agregar - Ej: ${
+                                    component.parameterType === 'route' ? 'id, userId' : 
+                                    component.parameterType === 'query' ? 'page, limit, search' :
+                                    component.parameterType === 'body' ? 'name, email, password' :
+                                    'authorization, content-type'
+                                }`}
+                                onClick={(e) => e.stopPropagation()}
+                                spellCheck={false}
+                            />
+                        </div>
+                        
+                        {/* Etiquetas de parámetros */}
+                        <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border border-gray-200 rounded-md bg-gray-50">
+                            {(() => {
+                                const paramKey = {
+                                    'route': 'routeParams',
+                                    'query': 'queryParams',
+                                    'body': 'bodyParams',
+                                    'headers': 'headerParams'
+                                }[component.parameterType];
+                                
+                                const params = component[paramKey] || [];
+                                
+                                if (params.length === 0) {
+                                    return (
+                                        <span className="text-xs text-gray-400 italic">
+                                            No hay parámetros agregados
+                                        </span>
+                                    );
+                                }
+                                
+                                return params.map((param, index) => (
+                                    <span
+                                        key={index}
+                                        className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <span>{param}</span>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                removeParameter(component.id, component.parameterType, param);
+                                            }}
+                                            className="hover:bg-green-200 rounded-full p-0.5 transition-colors"
+                                            title="Eliminar parámetro"
+                                        >
+                                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </span>
+                                ));
+                            })()}
+                        </div>
                     </div>
                 )}
             </div>
@@ -521,11 +1026,27 @@ export default function App() {
                         <select
                             value={component.method}
                             onChange={(e) => updateComponent(component.id, { method: e.target.value })}
-                            className="bg-green-100 text-green-800 px-2 py-1 rounded font-semibold text-xs border-none outline-none"
+                            className={`${getMethodColor(component.method)} px-3 py-1.5 rounded-md font-semibold text-xs border outline-none cursor-pointer hover:opacity-80 transition-all`}
                             onClick={(e) => e.stopPropagation()}
+                            style={{
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='currentColor' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right 8px center',
+                                paddingRight: '28px',
+                                appearance: 'none'
+                            }}
                         >
                             {httpMethods.map((method) => (
-                                <option key={method} value={method}>{method}</option>
+                                <option 
+                                    key={method} 
+                                    value={method}
+                                    style={{
+                                        backgroundColor: 'white',
+                                        color: '#374151'
+                                    }}
+                                >
+                                    {method}
+                                </option>
                             ))}
                         </select>
                         <input
@@ -569,34 +1090,222 @@ export default function App() {
                     <div className="p-3 space-y-3">
                         {renderParameterSection(component)}
 
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                                Código de Respuesta Exitosa
+                        {/* Constructor de Respuesta Exitosa */}
+                        <div className="border border-green-200 rounded-lg p-3 bg-green-50">
+                            <label className="block text-xs font-semibold text-green-800 mb-2 flex items-center">
+                                Respuesta Exitosa
                             </label>
-                            <textarea
-                                value={component.successCode}
-                                onChange={(e) => updateComponent(component.id, { successCode: e.target.value })}
-                                className="w-full px-2 py-2 border border-gray-300 rounded-md font-mono text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
-                                rows="2"
-                                placeholder="res.json({ message: 'Success', data: {} });"
-                                onClick={(e) => e.stopPropagation()}
-                                spellCheck={false}
-                            />
+                            
+                            {/* Código de Estado */}
+                            <div className="mb-3">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Código de Estado HTTP
+                                </label>
+                                <select
+                                    value={component.successResponse?.statusCode || 200}
+                                    onChange={(e) => updateStatusCode(component.id, 'success', e.target.value)}
+                                    className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500 bg-white"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <option value="200">200 - OK</option>
+                                    <option value="201">201 - Created</option>
+                                    <option value="202">202 - Accepted</option>
+                                    <option value="204">204 - No Content</option>
+                                </select>
+                            </div>
+
+                            {/* Agregar Campo */}
+                            <div className="mb-2">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Agregar Campo a la Respuesta
+                                </label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Clave (ej: message)"
+                                        id={`success-key-${component.id}`}
+                                        className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                                        onClick={(e) => e.stopPropagation()}
+                                        spellCheck={false}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Valor (ej: Success)"
+                                        id={`success-value-${component.id}`}
+                                        className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                                        onClick={(e) => e.stopPropagation()}
+                                        spellCheck={false}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                const keyInput = document.getElementById(`success-key-${component.id}`);
+                                                const valueInput = e.target;
+                                                addResponseField(component.id, 'success', keyInput.value, valueInput.value);
+                                                keyInput.value = '';
+                                                valueInput.value = '';
+                                            }
+                                        }}
+                                    />
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const keyInput = document.getElementById(`success-key-${component.id}`);
+                                            const valueInput = document.getElementById(`success-value-${component.id}`);
+                                            addResponseField(component.id, 'success', keyInput.value, valueInput.value);
+                                            keyInput.value = '';
+                                            valueInput.value = '';
+                                        }}
+                                        className="px-3 py-1.5 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200 transition-colors border border-green-200"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Campos de Respuesta - Estilo Compacto */}
+                            <div className="flex flex-wrap gap-2 min-h-[40px]">
+                                {(component.successResponse?.fields || []).map((field, index) => (
+                                    <div key={index} className="inline-flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-full px-3 py-1.5 group">
+                                        <span className="text-xs font-semibold text-green-700">
+                                            {field.key}:
+                                        </span>
+                                        <input
+                                            type="text"
+                                            value={field.value}
+                                            onChange={(e) => updateResponseField(component.id, 'success', field.key, e.target.value)}
+                                            className="bg-transparent text-xs text-green-800 outline-none border-none min-w-[60px] max-w-[300px]"
+                                            onClick={(e) => e.stopPropagation()}
+                                            spellCheck={false}
+                                            placeholder="valor"
+                                            style={{
+                                                width: `${Math.max(60, (field.value.length * 7) + 10)}px`
+                                            }}
+                                        />
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                removeResponseField(component.id, 'success', field.key);
+                                            }}
+                                            className="text-green-600 hover:text-red-600 hover:bg-red-100 rounded-full p-0.5 transition-colors opacity-0 group-hover:opacity-100"
+                                        >
+                                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                                Código de Respuesta de Error
+                        {/* Constructor de Respuesta de Error */}
+                        <div className="border border-red-200 rounded-lg p-3 bg-red-50">
+                            <label className="block text-xs font-semibold text-red-800 mb-2 flex items-center">
+                                Respuesta de Error
                             </label>
-                            <textarea
-                                value={component.errorCode}
-                                onChange={(e) => updateComponent(component.id, { errorCode: e.target.value })}
-                                className="w-full px-2 py-2 border border-gray-300 rounded-md font-mono text-xs focus:outline-none focus:ring-1 focus:ring-red-500"
-                                rows="2"
-                                placeholder="res.status(500).json({ error: 'Something went wrong' });"
-                                onClick={(e) => e.stopPropagation()}
-                                spellCheck={false}
-                            />
+                            
+                            {/* Código de Estado */}
+                            <div className="mb-3">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Código de Estado HTTP
+                                </label>
+                                <select
+                                    value={component.errorResponse?.statusCode || 500}
+                                    onChange={(e) => updateStatusCode(component.id, 'error', e.target.value)}
+                                    className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-red-500 bg-white"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <option value="400">400 - Bad Request</option>
+                                    <option value="401">401 - Unauthorized</option>
+                                    <option value="403">403 - Forbidden</option>
+                                    <option value="404">404 - Not Found</option>
+                                    <option value="409">409 - Conflict</option>
+                                    <option value="422">422 - Unprocessable Entity</option>
+                                    <option value="500">500 - Internal Server Error</option>
+                                    <option value="503">503 - Service Unavailable</option>
+                                </select>
+                            </div>
+
+                            {/* Agregar Campo */}
+                            <div className="mb-2">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Agregar Campo a la Respuesta
+                                </label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Clave"
+                                        id={`error-key-${component.id}`}
+                                        className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-red-500"
+                                        onClick={(e) => e.stopPropagation()}
+                                        spellCheck={false}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Valor"
+                                        id={`error-value-${component.id}`}
+                                        className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-red-500"
+                                        onClick={(e) => e.stopPropagation()}
+                                        spellCheck={false}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                const keyInput = document.getElementById(`error-key-${component.id}`);
+                                                const valueInput = e.target;
+                                                addResponseField(component.id, 'error', keyInput.value, valueInput.value);
+                                                keyInput.value = '';
+                                                valueInput.value = '';
+                                            }
+                                        }}
+                                    />
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const keyInput = document.getElementById(`error-key-${component.id}`);
+                                            const valueInput = document.getElementById(`error-value-${component.id}`);
+                                            addResponseField(component.id, 'error', keyInput.value, valueInput.value);
+                                            keyInput.value = '';
+                                            valueInput.value = '';
+                                        }}
+                                        className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-xs font-semibold hover:bg-red-200 transition-colors border border-red-200"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Campos de Respuesta - Estilo Compacto */}
+                            <div className="flex flex-wrap gap-2 min-h-[40px]">
+                                {(component.errorResponse?.fields || []).map((field, index) => (
+                                    <div key={index} className="inline-flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-full px-3 py-1.5 group">
+                                        <span className="text-xs font-semibold text-red-700">
+                                            {field.key}:
+                                        </span>
+                                        <input
+                                            type="text"
+                                            value={field.value}
+                                            onChange={(e) => updateResponseField(component.id, 'error', field.key, e.target.value)}
+                                            className="bg-transparent text-xs text-red-800 outline-none border-none min-w-[60px] max-w-[300px]"
+                                            onClick={(e) => e.stopPropagation()}
+                                            spellCheck={false}
+                                            placeholder="valor"
+                                            style={{
+                                                width: `${Math.max(60, (field.value.length * 7) + 10)}px`
+                                            }}
+                                        />
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                removeResponseField(component.id, 'error', field.key);
+                                            }}
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-100 rounded-full p-0.5 transition-colors opacity-0 group-hover:opacity-100"
+                                        >
+                                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -859,7 +1568,7 @@ export default function App() {
 
                 {/* Instrucciones */}
                 <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <h3 className="text-xs font-semibold text-blue-800 mb-2">💡 Cómo usar:</h3>
+                    <h3 className="text-xs font-semibold text-blue-800 mb-2">Cómo usar:</h3>
                     <ul className="text-xs text-blue-700 space-y-1">
                         <li>• Arrastra <strong>Rutas</strong> al área principal</li>
                         <li>• <strong>Arrastra componentes existentes</strong> para reubicarlos</li>
@@ -873,11 +1582,7 @@ export default function App() {
                 {/* Acciones */}
                 <div className="space-y-3 mt-auto">
                     <button
-                        onClick={() => {
-                            const code = generateAPICode();
-                            navigator.clipboard.writeText(code);
-                            alert('¡Código copiado al portapapeles!');
-                        }}
+                        onClick={handleExportCode}
                         className="w-full bg-purple-500 text-white p-3 rounded-lg font-medium hover:bg-purple-600 transition-colors flex items-center justify-center"
                     >
                         <Download size={18} className="mr-2" />
@@ -885,10 +1590,7 @@ export default function App() {
                     </button>
 
                     <button
-                        onClick={() => {
-                            setComponents([]);
-                            setSelectedComponent(null);
-                        }}
+                        onClick={handleClearAll}
                         className="w-full bg-red-500 text-white p-3 rounded-lg font-medium hover:bg-red-600 transition-colors flex items-center justify-center"
                     >
                         <Trash2 size={18} className="mr-2" />
