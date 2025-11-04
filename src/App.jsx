@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Route, Zap, Code, Settings, Download, Trash2, ChevronDown, ChevronUp, Move, Server, Globe, Hash, FileText, User, Search, HelpCircle, X, ChevronLeft, ChevronRight, Lock, RefreshCw, CheckCircle } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Route, Zap, Code, Settings, Download, Trash2, ChevronDown, ChevronUp, Move, Server, Globe, Hash, FileText, User, Search, HelpCircle, X, ChevronLeft, ChevronRight, Lock, RefreshCw, CheckCircle, AlertTriangle, Info, FileCode, Package, Database, BookOpen, Play, ArrowLeft, Check } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 export default function App() {
@@ -15,29 +15,16 @@ export default function App() {
     const [draggedComponent, setDraggedComponent] = useState(null);
     const dragCounter = useRef(0);
     
+    // Estados para el modal del tutorial
+    const [showTutorialModal, setShowTutorialModal] = useState(false);
+    const [tutorialStep, setTutorialStep] = useState(0);
+    
     // Nueva configuración para variables de entorno y base de datos
     const [useEnvironmentVariables, setUseEnvironmentVariables] = useState(true);
     const [databaseConfig, setDatabaseConfig] = useState({
         enabled: false,
         type: 'mysql' // mysql, oracle, postgresql, mssql, mongodb, redis
     });
-    
-    // Estado para módulo de ayuda
-    const [showHelp, setShowHelp] = useState(false);
-    const [helpStep, setHelpStep] = useState(0);
-
-    // Cerrar modal con tecla ESC
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === 'Escape' && showHelp) {
-                setShowHelp(false);
-                setHelpStep(0);
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [showHelp]);
 
     const componentTypes = [
         { 
@@ -669,7 +656,334 @@ export default function App() {
         return errors;
     };
 
+    const showTutorial = () => {
+        setTutorialStep(0);
+        setShowTutorialModal(true);
+    };
+
+    const closeTutorial = () => {
+        setShowTutorialModal(false);
+        setTutorialStep(0);
+    };
+
+    const nextTutorialStep = () => {
+        if (tutorialStep < 5) {
+            setTutorialStep(tutorialStep + 1);
+        } else {
+            closeTutorial();
+        }
+    };
+
+    const prevTutorialStep = () => {
+        if (tutorialStep > 0) {
+            setTutorialStep(tutorialStep - 1);
+        }
+    };
+
+    const tutorialContent = [
+        // Paso 0: Bienvenida
+        {
+            title: 'Bienvenido a GenAPI',
+            content: (
+                <div className="text-center p-8">
+                    <div className="bg-purple-600 text-white p-8 rounded-xl mb-6">
+                        <BookOpen size={64} className="mx-auto mb-4" />
+                        <h3 className="text-2xl font-bold">GenAPI</h3>
+                    </div>
+                    <p className="text-gray-600 text-base leading-relaxed mb-4">
+                        <strong>GenAPI</strong> es una herramienta visual para construir APIs REST de forma rápida e intuitiva.
+                    </p>
+                    <p className="text-gray-500 text-sm">
+                        Este tutorial te guiará paso a paso para crear tu primera API.
+                    </p>
+                </div>
+            )
+        },
+        // Paso 1: Configuración inicial
+        {
+            title: 'Configuración Inicial',
+            content: (
+                <div className="text-left p-6">
+                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-6">
+                        <div className="flex items-center mb-2">
+                            <Info size={20} className="text-blue-500 mr-2" />
+                            <strong className="text-gray-800">Configura tu API</strong>
+                        </div>
+                        <p className="text-gray-600 text-sm">
+                            En la barra lateral izquierda encontrarás los campos para configurar:
+                        </p>
+                    </div>
+                    
+                    <div className="space-y-4 pl-4">
+                        <div>
+                            <div className="flex items-center mb-1">
+                                <CheckCircle size={16} className="text-green-500 mr-2" />
+                                <strong className="text-sm text-gray-700">Nombre de la API</strong>
+                            </div>
+                            <p className="text-gray-600 text-xs ml-6">Identifica tu proyecto (ej: "API de E-commerce")</p>
+                        </div>
+                        
+                        <div>
+                            <div className="flex items-center mb-1">
+                                <CheckCircle size={16} className="text-green-500 mr-2" />
+                                <strong className="text-sm text-gray-700">Puerto</strong>
+                            </div>
+                            <p className="text-gray-600 text-xs ml-6">Puerto donde correrá el servidor (ej: 3000, 8080)</p>
+                        </div>
+                        
+                        <div>
+                            <div className="flex items-center mb-1">
+                                <CheckCircle size={16} className="text-green-500 mr-2" />
+                                <strong className="text-sm text-gray-700">Descripción</strong>
+                            </div>
+                            <p className="text-gray-600 text-xs ml-6">Breve descripción de tu API (opcional)</p>
+                        </div>
+                    </div>
+                </div>
+            )
+        },
+        // Paso 2: Componentes
+        {
+            title: 'Componentes',
+            content: (
+                <div className="text-left p-6">
+                    <p className="text-gray-600 mb-6 text-sm">
+                        GenAPI trabaja con dos tipos de componentes principales:
+                    </p>
+                    
+                    <div className="bg-blue-500 text-white p-4 rounded-lg mb-4">
+                        <div className="flex items-center mb-2">
+                            <Route size={24} className="mr-3" />
+                            <strong className="text-lg">RUTAS</strong>
+                        </div>
+                        <p className="text-sm opacity-90 mb-3">
+                            Contenedores que organizan tus endpoints. Puedes anidar rutas dentro de otras rutas para crear una estructura jerárquica.
+                        </p>
+                        <div className="bg-blue-600 p-2 rounded text-xs font-mono">
+                            Ejemplo: /api/users, /api/products
+                        </div>
+                    </div>
+                    
+                    <div className="bg-green-500 text-white p-4 rounded-lg">
+                        <div className="flex items-center mb-2">
+                            <Zap size={24} className="mr-3" />
+                            <strong className="text-lg">ENDPOINTS</strong>
+                        </div>
+                        <p className="text-sm opacity-90 mb-3">
+                            Puntos específicos de tu API que responden a peticiones HTTP (GET, POST, PUT, DELETE, PATCH).
+                        </p>
+                        <div className="bg-green-600 p-2 rounded text-xs font-mono">
+                            Ejemplo: GET /api/users/:id
+                        </div>
+                    </div>
+                </div>
+            )
+        },
+        // Paso 3: Drag and Drop
+        {
+            title: 'Arrastrar y Soltar',
+            content: (
+                <div className="text-left p-6">
+                    <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded mb-6">
+                        <div className="flex items-center mb-2">
+                            <Move size={20} className="text-yellow-600 mr-2" />
+                            <strong className="text-yellow-900">Interfaz Drag & Drop</strong>
+                        </div>
+                        <p className="text-yellow-800 text-sm">
+                            Todo en GenAPI funciona mediante arrastrar y soltar. ¡Es muy fácil!
+                        </p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                        <div>
+                            <div className="flex items-center mb-2">
+                                <div className="bg-blue-500 text-white w-7 h-7 rounded-full flex items-center justify-center mr-3 font-bold text-sm">1</div>
+                                <strong className="text-sm text-gray-800">Crear componentes nuevos</strong>
+                            </div>
+                            <p className="text-gray-600 text-xs ml-10">
+                                Arrastra una <strong>Ruta</strong> o <strong>Endpoint</strong> desde la barra lateral hacia el área principal.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <div className="flex items-center mb-2">
+                                <div className="bg-blue-500 text-white w-7 h-7 rounded-full flex items-center justify-center mr-3 font-bold text-sm">2</div>
+                                <strong className="text-sm text-gray-800">Anidar componentes</strong>
+                            </div>
+                            <p className="text-gray-600 text-xs ml-10">
+                                Arrastra <strong>endpoints</strong> o <strong>subrutas</strong> DENTRO de una ruta existente para organizarlos.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <div className="flex items-center mb-2">
+                                <div className="bg-blue-500 text-white w-7 h-7 rounded-full flex items-center justify-center mr-3 font-bold text-sm">3</div>
+                                <strong className="text-sm text-gray-800">Reorganizar</strong>
+                            </div>
+                            <p className="text-gray-600 text-xs ml-10">
+                                Arrastra componentes existentes para moverlos entre rutas o sacarlos al área principal.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )
+        },
+        // Paso 4: Configurar Endpoints
+        {
+            title: 'Configurar Endpoints',
+            content: (
+                <div className="text-left p-6">
+                    <p className="text-gray-600 mb-4 text-sm">
+                        Después de crear un endpoint, haz clic en él para configurarlo:
+                    </p>
+                    
+                    <div className="space-y-3">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex items-center mb-2">
+                                <Hash size={18} className="text-blue-500 mr-2" />
+                                <strong className="text-sm text-gray-800">Método HTTP</strong>
+                            </div>
+                            <p className="text-gray-600 text-xs ml-6">
+                                GET, POST, PUT, DELETE, PATCH
+                            </p>
+                        </div>
+                        
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex items-center mb-2">
+                                <Globe size={18} className="text-blue-500 mr-2" />
+                                <strong className="text-sm text-gray-800">Path del Endpoint</strong>
+                            </div>
+                            <p className="text-gray-600 text-xs ml-6">
+                                Ruta específica (ej: /users/:id, /login)
+                            </p>
+                        </div>
+                        
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex items-center mb-2">
+                                <FileText size={18} className="text-blue-500 mr-2" />
+                                <strong className="text-sm text-gray-800">Parámetros</strong>
+                            </div>
+                            <p className="text-gray-600 text-xs ml-6">
+                                Route Params, Query Params, Body, Headers
+                            </p>
+                        </div>
+                        
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex items-center mb-2">
+                                <Code size={18} className="text-blue-500 mr-2" />
+                                <strong className="text-sm text-gray-800">Respuestas</strong>
+                            </div>
+                            <p className="text-gray-600 text-xs ml-6">
+                                Define las respuestas de éxito y error con sus códigos de estado
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )
+        },
+        // Paso 5: Generar código
+        {
+            title: 'Generar tu API',
+            content: (
+                <div className="text-left p-6">
+                    <p className="text-gray-600 mb-6 text-sm">
+                        Cuando termines de diseñar tu API, genera el código:
+                    </p>
+                    
+                    <div className="bg-purple-500 text-white p-6 rounded-lg mb-4 text-center">
+                        <Download size={48} className="mx-auto mb-3" />
+                        <p className="text-sm">
+                            Haz clic en <strong>"Generar Código"</strong> en la barra lateral
+                        </p>
+                    </div>
+                    
+                    <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-3">
+                        <div className="flex items-start">
+                            <CheckCircle size={20} className="text-green-600 mr-3 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="font-semibold text-green-800 text-sm mb-1">Configuración Avanzada</p>
+                                <p className="text-green-700 text-xs">
+                                    Antes de generar podrás elegir si incluir archivo .env y conector de base de datos
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                        <div className="flex items-start">
+                            <Info size={20} className="text-yellow-600 mr-3 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="font-semibold text-yellow-800 text-sm mb-1">Código listo para usar</p>
+                                <p className="text-yellow-700 text-xs">
+                                    El código se copiará automáticamente al portapapeles. Solo pégalo en tu archivo server.js
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+    ];
+
     const handleExportCode = async () => {
+        // Validar nombre de la API
+        if (!apiConfig.name || apiConfig.name.trim() === '') {
+            await Swal.fire({
+                icon: 'warning',
+                title: 'Nombre requerido',
+                html: `
+                    <div style="text-align: center; padding: 10px;">
+                        <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                            <p style="color: #92400e; font-size: 14px; margin: 0;">
+                                Debes especificar un nombre para tu API en la configuración.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                confirmButtonColor: '#f59e0b',
+                backdrop: `
+                    rgba(0,0,0,0.6)
+                    left top
+                    no-repeat
+                `,
+                customClass: {
+                    container: 'blur-backdrop'
+                }
+            });
+            return;
+        }
+
+        // Validar puerto (debe ser numérico y válido)
+        const portNum = parseInt(apiConfig.port);
+        if (!apiConfig.port || isNaN(portNum) || portNum < 1 || portNum > 65535) {
+            await Swal.fire({
+                icon: 'warning',
+                title: 'Puerto inválido',
+                html: `
+                    <div style="text-align: center; padding: 10px;">
+                        <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                            <p style="color: #92400e; font-size: 14px; margin: 0;">
+                                El puerto debe ser un número válido entre <strong>1</strong> y <strong>65535</strong>.
+                            </p>
+                            <p style="color: #92400e; font-size: 13px; margin-top: 8px; margin-bottom: 0;">
+                                Puertos comunes: 3000, 8080, 4000, 5000
+                            </p>
+                        </div>
+                    </div>
+                `,
+                confirmButtonColor: '#f59e0b',
+                backdrop: `
+                    rgba(0,0,0,0.6)
+                    left top
+                    no-repeat
+                `,
+                customClass: {
+                    container: 'blur-backdrop'
+                }
+            });
+            return;
+        }
+
         // Validar si hay componentes
         if (components.length === 0) {
             await Swal.fire({
@@ -698,149 +1012,290 @@ export default function App() {
             return;
         }
 
-        // Calcular estadísticas
-        const routeCount = components.filter(c => c.type === 'route').length;
-        const endpointCount = components.filter(c => c.type === 'endpoint').length;
-        const totalRoutes = new Set(components.filter(c => c.type === 'endpoint').map(e => getFullPath(e).split('/').slice(0, -1).join('/'))).size;
+        // PASO 1: Mostrar configuración avanzada
+        let configResult;
+        let showConfig = true;
+        let useEnv, useDb, dbType, endpointCount;
         
-        // Determinar paquetes npm necesarios
-        let npmPackages = 'express';
-        if (useEnvironmentVariables || databaseConfig.enabled) {
-            npmPackages += ' dotenv';
-        }
-        if (databaseConfig.enabled) {
-            if (databaseConfig.type === 'mysql') npmPackages += ' mysql2';
-            else if (databaseConfig.type === 'oracle') npmPackages += ' oracledb';
-            else if (databaseConfig.type === 'postgresql') npmPackages += ' pg';
-            else if (databaseConfig.type === 'mssql') npmPackages += ' mssql';
-            else if (databaseConfig.type === 'mongodb') npmPackages += ' mongodb';
-            else if (databaseConfig.type === 'redis') npmPackages += ' redis';
-        }
-
-        // Mostrar modal de confirmación con especificaciones
-        const result = await Swal.fire({
-            title: 'Generar Código de la API',
-            html: `
-                <div style="text-align: left; padding: 10px;">
-                    <h3 style="color: #1f2937; margin-bottom: 12px; font-size: 16px;">Especificaciones:</h3>
-                    <div style="background: #f9fafb; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                        <p style="margin: 6px 0; font-size: 14px;"><strong>Nombre:</strong> ${apiConfig.name}</p>
-                        <p style="margin: 6px 0; font-size: 14px;"><strong>Puerto:</strong> ${apiConfig.port}</p>
-                        <p style="margin: 6px 0; font-size: 14px;"><strong>Descripción:</strong> ${apiConfig.description || 'Sin descripción'}</p>
-                        <p style="margin: 6px 0; font-size: 14px;"><strong>Total de rutas:</strong> ${routeCount}</p>
-                        <p style="margin: 6px 0; font-size: 14px;"><strong>Total de endpoints:</strong> ${endpointCount}</p>
-                        <p style="margin: 6px 0; font-size: 14px;"><strong>Variables de entorno:</strong> ${useEnvironmentVariables ? 'Habilitadas' : 'Deshabilitadas'}</p>
-                        <p style="margin: 6px 0; font-size: 14px;"><strong>Base de datos:</strong> ${databaseConfig.enabled ? `${databaseConfig.type.toUpperCase()}` : 'Sin base de datos'}</p>
-                    </div>
-                    
-                    <h3 style="color: #1f2937; margin-bottom: 12px; font-size: 16px;">Estructura de Proyecto:</h3>
-                    <div style="background: #1f2937; color: #10b981; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 13px; line-height: 1.6;">
-                        <div>mi-api/</div>
-                        <div>├── node_modules/</div>
-                        ${(useEnvironmentVariables || databaseConfig.enabled) ? '<div>├── .env                <span style="color: #f59e0b;">← Se generará</span></div>' : ''}
-                        <div>├── package.json</div>
-                        <div>├── server.js          <span style="color: #6b7280;">← Código generado</span></div>
-                        <div>└── README.md</div>
-                    </div>
-                    
-                    <h3 style="color: #1f2937; margin: 15px 0 12px 0; font-size: 16px;">Instalación:</h3>
-                    <div style="background: #1f2937; color: #e5e7eb; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 13px;">
-                        <div>$ npm install ${npmPackages}</div>
-                        ${(useEnvironmentVariables || databaseConfig.enabled) ? '<div style="color: #f59e0b;">$ # Configurar archivo .env generado</div>' : ''}
-                        <div>$ node server.js</div>
-                    </div>
-                    
-                    ${(useEnvironmentVariables || databaseConfig.enabled) ? `
-                        <div style="background: #fef3c7; padding: 12px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #f59e0b;">
-                            <p style="margin: 0; color: #92400e; font-size: 13px; font-weight: 500;">
-                                ⚠️ Se generará el archivo <strong>.env</strong> que deberás completar con tus credenciales
-                            </p>
+        while (showConfig) {
+            configResult = await Swal.fire({
+                title: '<div style="display: flex; align-items: center; justify-content: center;"><svg style="width: 24px; height: 24px; margin-right: 10px; color: #8b5cf6;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Configuración Avanzada</div>',
+                html: `
+                    <div style="text-align: left; padding: 10px;">
+                        <p style="color: #6b7280; margin-bottom: 20px; font-size: 14px;">Selecciona las opciones para tu proyecto</p>
+                        
+                        <!-- Variables de Entorno -->
+                        <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #e5e7eb;">
+                            <label style="display: flex; align-items: flex-start; cursor: pointer;">
+                                <input type="checkbox" id="swal-use-env" checked style="width: 18px; height: 18px; margin-top: 2px; margin-right: 12px; cursor: pointer;">
+                                <div>
+                                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px; font-size: 14px;">Usar Variables de Entorno</div>
+                                    <div style="color: #6b7280; font-size: 13px;">Configura el puerto y credenciales mediante archivo .env</div>
+                                </div>
+                            </label>
                         </div>
-                    ` : ''}
-                    
-                    <p style="margin-top: 15px; color: #6b7280; font-size: 13px;">
-                        El código será copiado al portapapeles<br/>
-                        Framework: Express.js<br/>
-                        Listo para ejecutar
-                    </p>
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Generar y Copiar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#10b981',
-            cancelButtonColor: '#6b7280',
-            width: '600px'
-        });
 
-        if (result.isConfirmed) {
-            const code = generateAPICode();
-            const envContent = generateEnvFile();
-            
-            // Copiar código al portapapeles
-            try {
-                await navigator.clipboard.writeText(code);
-                
-                // Descargar archivo .env si hay contenido
-                if (envContent) {
-                    const blob = new Blob([envContent], { type: 'text/plain' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = '.env';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
+                        <!-- Base de Datos -->
+                        <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border: 2px solid #e5e7eb;">
+                            <label style="display: flex; align-items: flex-start; cursor: pointer; margin-bottom: 12px;">
+                                <input type="checkbox" id="swal-use-db" style="width: 18px; height: 18px; margin-top: 2px; margin-right: 12px; cursor: pointer;">
+                                <div>
+                                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px; font-size: 14px;">Incluir Conector de Base de Datos</div>
+                                    <div style="color: #6b7280; font-size: 13px;">Genera conexión con variables de entorno (.env)</div>
+                                </div>
+                            </label>
+                            
+                            <div id="db-type-container" style="display: none; padding-top: 12px; border-top: 1px solid #e5e7eb; margin-top: 12px;">
+                                <label style="display: block; font-weight: 500; color: #374151; margin-bottom: 6px; font-size: 13px;">Tipo de Base de Datos</label>
+                                <select id="swal-db-type" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: white;">
+                                    <option value="mysql">MySQL</option>
+                                    <option value="oracle">Oracle SQL</option>
+                                    <option value="postgresql">PostgreSQL</option>
+                                    <option value="mssql">Microsoft SQL Server</option>
+                                    <option value="mongodb">MongoDB</option>
+                                    <option value="redis">Redis</option>
+                                </select>
+                                <div style="background: #dbeafe; padding: 10px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #3b82f6;">
+                                    <div style="color: #1e40af; font-size: 12px; display: flex; align-items: center;">
+                                        <svg style="width: 14px; height: 14px; margin-right: 6px; flex-shrink: 0;" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Las credenciales se configurarán en el archivo .env
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Continuar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#8b5cf6',
+                cancelButtonColor: '#6b7280',
+                width: '550px',
+                backdrop: `
+                    rgba(0,0,0,0.6)
+                    left top
+                    no-repeat
+                `,
+                customClass: {
+                    container: 'blur-backdrop'
+                },
+                didOpen: () => {
+                    const dbCheckbox = document.getElementById('swal-use-db');
+                    const dbTypeContainer = document.getElementById('db-type-container');
+                    const dbTypeSelect = document.getElementById('swal-db-type');
+                    
+                    // Establecer valores iniciales
+                    dbCheckbox.checked = databaseConfig.enabled;
+                    dbTypeSelect.value = databaseConfig.type;
+                    dbTypeContainer.style.display = databaseConfig.enabled ? 'block' : 'none';
+                    
+                    // Manejar cambio de checkbox de BD
+                    dbCheckbox.addEventListener('change', (e) => {
+                        dbTypeContainer.style.display = e.target.checked ? 'block' : 'none';
+                    });
+                },
+                preConfirm: () => {
+                    const useEnvLocal = document.getElementById('swal-use-env').checked;
+                    const useDbLocal = document.getElementById('swal-use-db').checked;
+                    const dbTypeLocal = document.getElementById('swal-db-type').value;
+                    
+                    return { useEnv: useEnvLocal, useDb: useDbLocal, dbType: dbTypeLocal };
                 }
-                
-                let successMessage = `
-                    <p>El código de tu API ha sido copiado al portapapeles</p>
-                    <div style="margin-top: 15px; padding: 10px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid #10b981;">
-                        <p style="margin: 5px 0; font-size: 14px;">${endpointCount} endpoints configurados</p>
-                        <p style="margin: 5px 0; font-size: 14px;">Servidor en puerto ${apiConfig.port}</p>
-                        <p style="margin: 5px 0; font-size: 14px;">Listo para pegar en server.js</p>
+            });
+
+            // Si el usuario canceló
+            if (!configResult.isConfirmed) {
+                return;
+            }
+
+            // Actualizar configuraciones basadas en la selección del usuario
+            ({ useEnv, useDb, dbType } = configResult.value);
+            setUseEnvironmentVariables(useEnv);
+            setDatabaseConfig({ enabled: useDb, type: dbType });
+
+            // Calcular estadísticas
+            const routeCount = components.filter(c => c.type === 'route').length;
+            endpointCount = components.filter(c => c.type === 'endpoint').length;
+            
+            // Determinar paquetes npm necesarios con las nuevas configuraciones
+            let npmPackages = 'express';
+            if (useEnv || useDb) {
+                npmPackages += ' dotenv';
+            }
+            if (useDb) {
+                if (dbType === 'mysql') npmPackages += ' mysql2';
+                else if (dbType === 'oracle') npmPackages += ' oracledb';
+                else if (dbType === 'postgresql') npmPackages += ' pg';
+                else if (dbType === 'mssql') npmPackages += ' mssql';
+                else if (dbType === 'mongodb') npmPackages += ' mongodb';
+                else if (dbType === 'redis') npmPackages += ' redis';
+            }
+
+            // PASO 2: Mostrar resumen y confirmar generación
+            const result = await Swal.fire({
+                title: `Código de la API: ${apiConfig.name}`,
+                html: `
+                    <div style="text-align: left; padding: 10px;">
+                        <h3 style="color: #1f2937; margin-bottom: 12px; font-size: 16px;">Especificaciones:</h3>
+                        <div style="background: #f9fafb; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                            <p style="margin: 6px 0; font-size: 14px;"><strong>Puerto:</strong> ${apiConfig.port}</p>
+                            <p style="margin: 6px 0; font-size: 14px;"><strong>Descripción:</strong> ${apiConfig.description || 'Sin descripción'}</p>
+                        </div>
+                        
+                        <h3 style="color: #1f2937; margin-bottom: 12px; font-size: 16px;">Estructura de Proyecto:</h3>
+                        <div style="background: #1f2937; color: #10b981; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 13px; line-height: 1.6;">
+                            <div>mi-api/</div>
+                            <div>├── node_modules/</div>
+                            ${(useEnv || useDb) ? '<div>├── .env                <span style="color: #f59e0b;">← Se generará</span></div>' : ''}
+                            <div>├── package.json</div>
+                            <div>├── server.js          <span style="color: #6b7280;">← Código generado</span></div>
+                            <div>└── README.md</div>
+                        </div>
+                        
+                        ${(useEnv || useDb) ? `
+                            <div style="background: #fef3c7; padding: 12px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #f59e0b;">
+                                <div style="display: flex; align-items: center;">
+                                    <svg style="width: 18px; height: 18px; color: #f59e0b; margin-right: 8px; flex-shrink: 0;" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <p style="margin: 0; color: #92400e; font-size: 13px; font-weight: 500;">
+                                        Se generará el archivo <strong>.env</strong> que deberás completar con tus credenciales
+                                    </p>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `,
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: '<div style="display: flex; align-items: center;"><svg style="width: 18px; height: 18px; margin-right: 6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Generar y Copiar</div>',
+                denyButtonText: '<div style="display: flex; align-items: center;"><svg style="width: 18px; height: 18px; margin-right: 6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg> Volver a Configuración</div>',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#10b981',
+                denyButtonColor: '#8b5cf6',
+                cancelButtonColor: '#6b7280',
+                width: '600px',
+                backdrop: `
+                    rgba(0,0,0,0.6)
+                    left top
+                    no-repeat
+                `,
+                customClass: {
+                    container: 'blur-backdrop'
+                }
+            });
+
+            // Si eligió volver, continúa el loop
+            if (result.isDenied) {
+                continue;
+            }
+
+            // Si canceló, sale
+            if (result.isDismissed) {
+                return;
+            }
+
+            // Si confirmó, sale del loop
+            if (result.isConfirmed) {
+                showConfig = false;
+            }
+        }
+
+        // FUERA DEL WHILE: Generar el código
+        const code = generateAPICode(useEnv, { enabled: useDb, type: dbType });
+        const envContent = generateEnvFile(useEnv, { enabled: useDb, type: dbType });
+        
+        // Copiar código al portapapeles
+        try {
+            await navigator.clipboard.writeText(code);
+            
+            // Descargar archivo .env si hay contenido
+            if (envContent) {
+                const blob = new Blob([envContent], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '.env';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }
+            
+            let successMessage = `
+                <p>El código de tu API ha sido copiado al portapapeles</p>
+                <div style="margin-top: 15px; padding: 10px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid #10b981;">
+                    <p style="margin: 5px 0; font-size: 14px;">${endpointCount} endpoints configurados</p>
+                    <p style="margin: 5px 0; font-size: 14px;">Servidor en puerto ${apiConfig.port}</p>
+                    <p style="margin: 5px 0; font-size: 14px;">Listo para pegar en server.js</p>
+                </div>
+            `;
+            
+            if (envContent) {
+                successMessage += `
+                    <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; border-left: 4px solid #f59e0b;">
+                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                            <svg style="width: 20px; height: 20px; color: #f59e0b; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <h4 style="margin: 0; color: #92400e; font-size: 14px; font-weight: 600;">Archivo .env generado</h4>
+                        </div>
+                        <p style="margin: 0; color: #92400e; font-size: 13px;">
+                            El archivo <strong>.env</strong> ha sido descargado.<br/>
+                            Completa los valores de las variables antes de ejecutar tu API.
+                        </p>
                     </div>
                 `;
-                
-                if (envContent) {
-                    successMessage += `
-                        <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; border-left: 4px solid #f59e0b;">
-                            <h4 style="margin: 0 0 10px 0; color: #92400e; font-size: 14px; font-weight: 600;">📄 Archivo .env generado</h4>
-                            <p style="margin: 0; color: #92400e; font-size: 13px;">
-                                El archivo <strong>.env</strong> ha sido descargado.<br/>
-                                Completa los valores de las variables antes de ejecutar tu API.
-                            </p>
-                        </div>
-                    `;
-                }
-                
-                if (databaseConfig.enabled) {
-                    successMessage += `
-                        <div style="margin-top: 15px; padding: 12px; background: #dbeafe; border-radius: 6px; border-left: 4px solid #3b82f6;">
+            }
+            
+            if (useDb) {
+                successMessage += `
+                    <div style="margin-top: 15px; padding: 12px; background: #dbeafe; border-radius: 6px; border-left: 4px solid #3b82f6;">
+                        <div style="display: flex; align-items: center;">
+                            <svg style="width: 20px; height: 20px; color: #3b82f6; margin-right: 8px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                            </svg>
                             <p style="margin: 0; color: #1e40af; font-size: 13px;">
-                                🗄️ Base de datos ${databaseConfig.type.toUpperCase()} configurada<br/>
+                                Base de datos ${dbType.toUpperCase()} configurada<br/>
                                 Completa las credenciales en el archivo .env descargado
                             </p>
                         </div>
-                    `;
-                }
-                
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Código Generado',
-                    html: successMessage,
-                    confirmButtonColor: '#10b981',
-                    width: '650px'
-                });
-            } catch (error) {
-                await Swal.fire({
-                    icon: 'error',
-                    title: 'Error al copiar',
-                    text: 'No se pudo copiar al portapapeles. Intenta manualmente.',
-                    confirmButtonColor: '#ef4444'
-                });
+                    </div>
+                `;
             }
+            
+            await Swal.fire({
+                icon: 'success',
+                title: 'Código Generado',
+                html: successMessage,
+                confirmButtonColor: '#10b981',
+                width: '650px',
+                backdrop: `
+                    rgba(0,0,0,0.6)
+                    left top
+                    no-repeat
+                `,
+                customClass: {
+                    container: 'blur-backdrop'
+                }
+            });
+        } catch (error) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Error al copiar',
+                text: 'No se pudo copiar al portapapeles. Intenta manualmente.',
+                confirmButtonColor: '#ef4444',
+                backdrop: `
+                    rgba(0,0,0,0.6)
+                    left top
+                    no-repeat
+                `,
+                customClass: {
+                    container: 'blur-backdrop'
+                }
+            });
         }
     };
 
@@ -891,10 +1346,10 @@ export default function App() {
         }
     };
 
-    const generateDatabaseConnector = () => {
-        if (!databaseConfig.enabled) return '';
+    const generateDatabaseConnector = (dbConfig = databaseConfig) => {
+        if (!dbConfig.enabled) return '';
         
-        const { type } = databaseConfig;
+        const { type } = dbConfig;
         let code = '';
         
         if (type === 'mysql') {
@@ -1027,18 +1482,18 @@ export default function App() {
         return code;
     };
     
-    const generateEnvFile = () => {
+    const generateEnvFile = (useEnv = useEnvironmentVariables, dbConfig = databaseConfig) => {
         let envContent = '';
         
         // Puerto de la API si usa variables de entorno
-        if (useEnvironmentVariables) {
+        if (useEnv) {
             envContent += `# Server Configuration\n`;
             envContent += `PORT=\n\n`;
         }
         
         // Variables de base de datos
-        if (databaseConfig.enabled) {
-            const { type } = databaseConfig;
+        if (dbConfig.enabled) {
+            const { type } = dbConfig;
             
             envContent += `# Database Configuration\n`;
             
@@ -1082,13 +1537,13 @@ export default function App() {
         return envContent;
     };
 
-    const generateAPICode = () => {
+    const generateAPICode = (useEnv = useEnvironmentVariables, dbConfig = databaseConfig) => {
         const endpoints = components.filter(c => c.type === 'endpoint');
         
         let code = `// ${apiConfig.name}\n// ${apiConfig.description}\n\n`;
         
         // Requerir dotenv si se usan variables de entorno O si hay base de datos
-        if (useEnvironmentVariables || databaseConfig.enabled) {
+        if (useEnv || dbConfig.enabled) {
             code += `require('dotenv').config();\n`;
         }
         
@@ -1096,7 +1551,7 @@ export default function App() {
         code += `app.use(express.json());\napp.use(express.urlencoded({ extended: true }));\n`;
         
         // Agregar conector de base de datos
-        code += generateDatabaseConnector();
+        code += generateDatabaseConnector(dbConfig);
         
         endpoints.forEach(endpoint => {
             const method = endpoint.method.toLowerCase();
@@ -1163,8 +1618,8 @@ export default function App() {
             code += `  try {\n`;
             
             // Agregar ejemplo de query a base de datos si está habilitado
-            if (databaseConfig.enabled) {
-                const { type } = databaseConfig;
+            if (dbConfig.enabled) {
+                const { type } = dbConfig;
                 code += `    // Ejemplo de consulta a base de datos:\n`;
                 
                 if (type === 'mysql') {
@@ -1209,7 +1664,7 @@ export default function App() {
         });
 
         // Puerto desde variable de entorno o hardcoded
-        const portValue = useEnvironmentVariables ? 'process.env.PORT || ' + apiConfig.port : apiConfig.port;
+        const portValue = useEnv ? 'process.env.PORT || ' + apiConfig.port : apiConfig.port;
         code += `const PORT = ${portValue};\n`;
         code += `app.listen(PORT, () => {\n  console.log('${apiConfig.name} running on port ' + PORT);\n});`;
 
@@ -2049,7 +2504,37 @@ export default function App() {
     ];
 
     return (
-        <div className="flex h-screen bg-gray-100">
+        <>
+            <style>{`
+                .blur-backdrop {
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                }
+                
+                /* Asegurar que el backdrop tenga el efecto blur */
+                .swal2-container.blur-backdrop {
+                    background: rgba(0, 0, 0, 0.6) !important;
+                    backdrop-filter: blur(8px) !important;
+                    -webkit-backdrop-filter: blur(8px) !important;
+                }
+                
+                /* Animación para el modal */
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.95);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                }
+                
+                .animate-fadeIn {
+                    animation: fadeIn 0.2s ease-out;
+                }
+            `}</style>
+            <div className="flex h-screen bg-gray-100">
             {/* Barra lateral */}
             <div className="w-80 bg-white shadow-lg border-r border-gray-200 p-4 flex flex-col overflow-y-auto">
                 <h2 className="text-xl font-bold text-gray-800 mb-2 flex items-center">
@@ -2074,17 +2559,26 @@ export default function App() {
                                 className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 placeholder="Mi API"
                                 spellCheck={false}
+                                required
                             />
                         </div>
                         <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1">Puerto</label>
                             <input
                                 type="number"
+                                min="1"
+                                max="65535"
                                 value={apiConfig.port}
-                                onChange={(e) => setApiConfig(prev => ({ ...prev, port: parseInt(e.target.value) || 3000 }))}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 65535)) {
+                                        setApiConfig(prev => ({ ...prev, port: parseInt(value) || '' }));
+                                    }
+                                }}
                                 className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 placeholder="3000"
                                 spellCheck={false}
+                                required
                             />
                         </div>
                         <div>
@@ -2098,73 +2592,6 @@ export default function App() {
                                 spellCheck={false}
                             />
                         </div>
-                    </div>
-                </div>
-
-                {/* Configuración Avanzada */}
-                <div className="mb-6 p-4 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border border-purple-200">
-                    <h3 className="text-sm font-semibold text-purple-700 mb-3 flex items-center">
-                        <Settings size={16} className="mr-1" />
-                        Configuración Avanzada
-                    </h3>
-                    
-                    {/* Variables de Entorno */}
-                    <div className="mb-4 p-3 bg-white rounded-lg border border-purple-100">
-                        <label className="flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={useEnvironmentVariables}
-                                onChange={(e) => setUseEnvironmentVariables(e.target.checked)}
-                                className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
-                            />
-                            <div className="ml-3 flex-1">
-                                <span className="text-xs font-semibold text-gray-700">Usar Variables de Entorno</span>
-                                <p className="text-xs text-gray-500 mt-0.5">
-                                    Configura el puerto y credenciales mediante archivo .env
-                                </p>
-                            </div>
-                        </label>
-                    </div>
-
-                    {/* Configuración de Base de Datos */}
-                    <div className="p-3 bg-white rounded-lg border border-purple-100">
-                        <label className="flex items-center cursor-pointer mb-3">
-                            <input
-                                type="checkbox"
-                                checked={databaseConfig.enabled}
-                                onChange={(e) => setDatabaseConfig(prev => ({ ...prev, enabled: e.target.checked }))}
-                                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                            />
-                            <div className="ml-3 flex-1">
-                                <span className="text-xs font-semibold text-gray-700">Incluir Conector de Base de Datos</span>
-                                <p className="text-xs text-gray-500 mt-0.5">
-                                    Genera conexión con variables de entorno (.env)
-                                </p>
-                            </div>
-                        </label>
-
-                        {databaseConfig.enabled && (
-                            <div className="space-y-2 mt-3 pt-3 border-t border-gray-200">
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Tipo de Base de Datos</label>
-                                    <select
-                                        value={databaseConfig.type}
-                                        onChange={(e) => setDatabaseConfig(prev => ({ ...prev, type: e.target.value }))}
-                                        className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                    >
-                                        <option value="mysql">MySQL</option>
-                                        <option value="oracle">Oracle SQL</option>
-                                        <option value="postgresql">PostgreSQL</option>
-                                        <option value="mssql">Microsoft SQL Server</option>
-                                        <option value="mongodb">MongoDB</option>
-                                        <option value="redis">Redis</option>
-                                    </select>
-                                </div>
-                                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800 flex items-center">
-                                    <Lock size={14} className="mr-2 flex-shrink-0" /> Las credenciales se configurarán mediante archivo .env que se generará automáticamente
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -2265,15 +2692,15 @@ export default function App() {
                                 <p className="text-sm text-gray-500 mt-1">{apiConfig.description}</p>
                             )}
                         </div>
-                        <div className="flex items-center space-x-2">
-                            {/* <button
-                                onClick={() => setShowHelp(true)}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2 shadow-md"
-                                title="Ver tutorial"
+                        <div className="flex items-center space-x-3">
+                            <button
+                                onClick={showTutorial}
+                                className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors shadow-sm"
+                                title="Ver Tutorial"
                             >
-                                <HelpCircle size={18} />
-                                <span className="text-sm font-medium">Ayuda</span>
-                            </button> */}
+                                <HelpCircle size={18} className="mr-2" />
+                                Ayuda
+                            </button>
                             <div className="text-right text-sm text-gray-600">
                                 <div className="flex items-center">
                                     <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
@@ -2324,99 +2751,91 @@ export default function App() {
                     )}
                 </div>
             </div>
+        </div>
 
-            {/* Modal de Tutorial */}
-            {showHelp && (
-                <div className="fixed inset-0 bg-gray-900 bg-opacity-20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col">
-                        {/* Header del Modal */}
-                        <div className="bg-blue-600 text-white p-6 rounded-t-xl flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                                {React.createElement(helpSteps[helpStep].icon, { size: 28 })}
-                                <div>
-                                    <h2 className="text-2xl font-bold">{helpSteps[helpStep].title}</h2>
-                                    <p className="text-blue-100 text-sm">Paso {helpStep + 1} de {helpSteps.length}</p>
-                                </div>
-                            </div>
+        {/* Modal del Tutorial */}
+        {showTutorialModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
+                <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col animate-fadeIn">
+                    {/* Header */}
+                    <div className="border-b border-gray-200 p-6 pb-4">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-bold text-gray-800">{tutorialContent[tutorialStep].title}</h2>
                             <button
-                                onClick={() => {
-                                    setShowHelp(false);
-                                    setHelpStep(0);
-                                }}
-                                className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors"
+                                onClick={closeTutorial}
+                                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
                             >
                                 <X size={24} />
                             </button>
                         </div>
-
-                        {/* Contenido del Paso */}
-                        <div className="flex-1 overflow-y-auto p-6">
-                            {helpSteps[helpStep].content}
-                        </div>
-
-                        {/* Barra de Progreso */}
-                        <div className="px-6 py-2">
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div 
-                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${((helpStep + 1) / helpSteps.length) * 100}%` }}
+                        {/* Indicadores de progreso */}
+                        <div className="flex items-center justify-center gap-2">
+                            {tutorialContent.map((_, index) => (
+                                <div
+                                    key={index}
+                                    className={`h-2 rounded-full transition-all duration-300 ${
+                                        index === tutorialStep 
+                                            ? 'w-8 bg-purple-500' 
+                                            : 'w-2 bg-gray-300'
+                                    }`}
                                 />
-                            </div>
+                            ))}
                         </div>
+                        <div className="text-center text-gray-500 text-xs mt-2">
+                            Paso {tutorialStep + 1} de {tutorialContent.length}
+                        </div>
+                    </div>
 
-                        {/* Footer con Navegación */}
-                        <div className="bg-gray-50 p-4 rounded-b-xl flex items-center justify-between border-t border-gray-200">
-                            <button
-                                onClick={() => setHelpStep(Math.max(0, helpStep - 1))}
-                                disabled={helpStep === 0}
-                                className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                                    helpStep === 0
-                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                }`}
-                            >
-                                <ChevronLeft size={18} />
-                                <span>Anterior</span>
-                            </button>
+                    {/* Contenido */}
+                    <div className="flex-1 overflow-y-auto">
+                        {tutorialContent[tutorialStep].content}
+                    </div>
 
-                            <div className="flex space-x-2">
-                                {helpSteps.map((_, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setHelpStep(index)}
-                                        className={`w-2 h-2 rounded-full transition-all ${
-                                            index === helpStep
-                                                ? 'bg-blue-600 w-6'
-                                                : 'bg-gray-300 hover:bg-gray-400'
-                                        }`}
-                                    />
-                                ))}
-                            </div>
-
-                            {helpStep < helpSteps.length - 1 ? (
+                    {/* Footer con botones */}
+                    <div className="border-t border-gray-200 p-4 flex items-center justify-between bg-gray-50 rounded-b-xl">
+                        <button
+                            onClick={closeTutorial}
+                            className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium"
+                        >
+                            Salir
+                        </button>
+                        
+                        <div className="flex items-center gap-2">
+                            {tutorialStep > 0 && (
                                 <button
-                                    onClick={() => setHelpStep(Math.min(helpSteps.length - 1, helpStep + 1))}
-                                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                                    onClick={prevTutorialStep}
+                                    className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium"
                                 >
-                                    <span>Siguiente</span>
-                                    <ChevronRight size={18} />
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => {
-                                        setShowHelp(false);
-                                        setHelpStep(0);
-                                    }}
-                                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-                                >
-                                    <span>¡Empezar!</span>
-                                    <Zap size={18} />
+                                    <ChevronLeft size={18} className="mr-1" />
+                                    Anterior
                                 </button>
                             )}
+                            
+                            <button
+                                onClick={nextTutorialStep}
+                                className={`flex items-center px-5 py-2 text-white rounded-lg transition-colors text-sm font-medium ${
+                                    tutorialStep === tutorialContent.length - 1
+                                        ? 'bg-green-500 hover:bg-green-600'
+                                        : 'bg-purple-500 hover:bg-purple-600'
+                                }`}
+                            >
+                                {tutorialStep === tutorialContent.length - 1 ? (
+                                    <>
+                                        <Check size={18} className="mr-1" />
+                                        Finalizar
+                                    </>
+                                ) : (
+                                    <>
+                                        Siguiente
+                                        <ChevronRight size={18} className="ml-1" />
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>
-            )}
-        </div>
+            </div>
+        )}
+        </>
     );
 }
