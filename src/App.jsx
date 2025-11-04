@@ -693,9 +693,6 @@ export default function App() {
                     <p className="text-gray-600 text-base leading-relaxed mb-4">
                         <strong>GenAPI</strong> es una herramienta visual para construir APIs REST de forma rápida e intuitiva.
                     </p>
-                    <p className="text-gray-500 text-sm">
-                        Este tutorial te guiará paso a paso para crear tu primera API.
-                    </p>
                 </div>
             )
         },
@@ -754,7 +751,7 @@ export default function App() {
                     <div className="bg-blue-500 text-white p-4 rounded-lg mb-4">
                         <div className="flex items-center mb-2">
                             <Route size={24} className="mr-3" />
-                            <strong className="text-lg">RUTAS</strong>
+                            <strong className="text-lg">Ruta</strong>
                         </div>
                         <p className="text-sm opacity-90 mb-3">
                             Contenedores que organizan tus endpoints. Puedes anidar rutas dentro de otras rutas para crear una estructura jerárquica.
@@ -767,7 +764,7 @@ export default function App() {
                     <div className="bg-green-500 text-white p-4 rounded-lg">
                         <div className="flex items-center mb-2">
                             <Zap size={24} className="mr-3" />
-                            <strong className="text-lg">ENDPOINTS</strong>
+                            <strong className="text-lg">Endpoint</strong>
                         </div>
                         <p className="text-sm opacity-90 mb-3">
                             Puntos específicos de tu API que responden a peticiones HTTP (GET, POST, PUT, DELETE, PATCH).
@@ -2695,7 +2692,7 @@ export default function App() {
                         <div className="flex items-center space-x-3">
                             <button
                                 onClick={showTutorial}
-                                className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors shadow-sm"
+                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors shadow-sm"
                                 title="Ver Tutorial"
                             >
                                 <HelpCircle size={18} className="mr-2" />
