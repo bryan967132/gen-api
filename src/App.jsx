@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Route, Zap, Code, Settings, Download, Trash2, ChevronDown, ChevronUp, Move, Server, Globe, Hash, FileText, User, Search, HelpCircle, X, ChevronLeft, ChevronRight, Lock, RefreshCw, CheckCircle, AlertTriangle, Info, FileCode, Package, Database, BookOpen, Play, ArrowLeft, Check } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Route, Zap, Code, Settings, Download, Trash2, ChevronDown, ChevronUp, Move, Server, Globe, Hash, FileText, User, Search, HelpCircle, X, ChevronLeft, ChevronRight, Lock, RefreshCw, CheckCircle, AlertTriangle, Info, Database, BookOpen, ArrowLeft, Check } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 export default function App() {
@@ -19,12 +19,37 @@ export default function App() {
     const [showTutorialModal, setShowTutorialModal] = useState(false);
     const [tutorialStep, setTutorialStep] = useState(0);
     
+    // Estados para el modal de generación de código
+    const [showCodeGenModal, setShowCodeGenModal] = useState(false);
+    const [showConfigSummary, setShowConfigSummary] = useState(false);
+    const [tempUseEnv, setTempUseEnv] = useState(true);
+    const [tempUseDb, setTempUseDb] = useState(false);
+    const [tempDbType, setTempDbType] = useState('mysql');
+    
     // Nueva configuración para variables de entorno y base de datos
     const [useEnvironmentVariables, setUseEnvironmentVariables] = useState(true);
     const [databaseConfig, setDatabaseConfig] = useState({
         enabled: false,
         type: 'mysql' // mysql, oracle, postgresql, mssql, mongodb, redis
     });
+
+    // Hook para cerrar modales con tecla ESC
+    useEffect(() => {
+        const handleEscapeKey = (event) => {
+            if (event.key === 'Escape') {
+                if (showTutorialModal) {
+                    setShowTutorialModal(false);
+                } else if (showConfigSummary) {
+                    setShowConfigSummary(false);
+                } else if (showCodeGenModal) {
+                    setShowCodeGenModal(false);
+                }
+            }
+        };
+
+        document.addEventListener('keydown', handleEscapeKey);
+        return () => document.removeEventListener('keydown', handleEscapeKey);
+    }, [showTutorialModal, showConfigSummary, showCodeGenModal]);
 
     const componentTypes = [
         { 
@@ -1009,200 +1034,39 @@ export default function App() {
             return;
         }
 
-        // PASO 1: Mostrar configuración avanzada
-        let configResult;
-        let showConfig = true;
-        let useEnv, useDb, dbType, endpointCount;
+        // PASO 1: Abrir el modal de configuración
+        setTempUseEnv(useEnvironmentVariables);
+        setTempUseDb(databaseConfig.enabled);
+        setTempDbType(databaseConfig.type);
+        setShowCodeGenModal(true);
+    };
+
+    // Función para continuar desde el modal de configuración
+    const handleContinueFromConfig = () => {
+        // Guardar configuraciones temporales
+        setUseEnvironmentVariables(tempUseEnv);
+        setDatabaseConfig({ enabled: tempUseDb, type: tempDbType });
         
-        while (showConfig) {
-            configResult = await Swal.fire({
-                title: '<div style="display: flex; align-items: center; justify-content: center;"><svg style="width: 24px; height: 24px; margin-right: 10px; color: #8b5cf6;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Configuración Avanzada</div>',
-                html: `
-                    <div style="text-align: left; padding: 10px;">
-                        <p style="color: #6b7280; margin-bottom: 20px; font-size: 14px;">Selecciona las opciones para tu proyecto</p>
-                        
-                        <!-- Variables de Entorno -->
-                        <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #e5e7eb;">
-                            <label style="display: flex; align-items: flex-start; cursor: pointer;">
-                                <input type="checkbox" id="swal-use-env" checked style="width: 18px; height: 18px; margin-top: 2px; margin-right: 12px; cursor: pointer;">
-                                <div>
-                                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px; font-size: 14px;">Usar Variables de Entorno</div>
-                                    <div style="color: #6b7280; font-size: 13px;">Configura el puerto y credenciales mediante archivo .env</div>
-                                </div>
-                            </label>
-                        </div>
+        // Cerrar modal de config y abrir resumen
+        setShowCodeGenModal(false);
+        setShowConfigSummary(true);
+    };
 
-                        <!-- Base de Datos -->
-                        <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border: 2px solid #e5e7eb;">
-                            <label style="display: flex; align-items: flex-start; cursor: pointer; margin-bottom: 12px;">
-                                <input type="checkbox" id="swal-use-db" style="width: 18px; height: 18px; margin-top: 2px; margin-right: 12px; cursor: pointer;">
-                                <div>
-                                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px; font-size: 14px;">Incluir Conector de Base de Datos</div>
-                                    <div style="color: #6b7280; font-size: 13px;">Genera conexión con variables de entorno (.env)</div>
-                                </div>
-                            </label>
-                            
-                            <div id="db-type-container" style="display: none; padding-top: 12px; border-top: 1px solid #e5e7eb; margin-top: 12px;">
-                                <label style="display: block; font-weight: 500; color: #374151; margin-bottom: 6px; font-size: 13px;">Tipo de Base de Datos</label>
-                                <select id="swal-db-type" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: white;">
-                                    <option value="mysql">MySQL</option>
-                                    <option value="oracle">Oracle SQL</option>
-                                    <option value="postgresql">PostgreSQL</option>
-                                    <option value="mssql">Microsoft SQL Server</option>
-                                    <option value="mongodb">MongoDB</option>
-                                    <option value="redis">Redis</option>
-                                </select>
-                                <div style="background: #dbeafe; padding: 10px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #3b82f6;">
-                                    <div style="color: #1e40af; font-size: 12px; display: flex; align-items: center;">
-                                        <svg style="width: 14px; height: 14px; margin-right: 6px; flex-shrink: 0;" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                                        </svg>
-                                        Las credenciales se configurarán en el archivo .env
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Continuar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#8b5cf6',
-                cancelButtonColor: '#6b7280',
-                width: '550px',
-                backdrop: `
-                    rgba(0,0,0,0.6)
-                    left top
-                    no-repeat
-                `,
-                customClass: {
-                    container: 'blur-backdrop'
-                },
-                didOpen: () => {
-                    const dbCheckbox = document.getElementById('swal-use-db');
-                    const dbTypeContainer = document.getElementById('db-type-container');
-                    const dbTypeSelect = document.getElementById('swal-db-type');
-                    
-                    // Establecer valores iniciales
-                    dbCheckbox.checked = databaseConfig.enabled;
-                    dbTypeSelect.value = databaseConfig.type;
-                    dbTypeContainer.style.display = databaseConfig.enabled ? 'block' : 'none';
-                    
-                    // Manejar cambio de checkbox de BD
-                    dbCheckbox.addEventListener('change', (e) => {
-                        dbTypeContainer.style.display = e.target.checked ? 'block' : 'none';
-                    });
-                },
-                preConfirm: () => {
-                    const useEnvLocal = document.getElementById('swal-use-env').checked;
-                    const useDbLocal = document.getElementById('swal-use-db').checked;
-                    const dbTypeLocal = document.getElementById('swal-db-type').value;
-                    
-                    return { useEnv: useEnvLocal, useDb: useDbLocal, dbType: dbTypeLocal };
-                }
-            });
+    // Función para generar y copiar el código
+    const handleGenerateAndCopy = async () => {
+        const useEnv = tempUseEnv;
+        const useDb = tempUseDb;
+        const dbType = tempDbType;
 
-            // Si el usuario canceló
-            if (!configResult.isConfirmed) {
-                return;
-            }
+        // Cerrar modal de resumen
+        setShowConfigSummary(false);
 
-            // Actualizar configuraciones basadas en la selección del usuario
-            ({ useEnv, useDb, dbType } = configResult.value);
-            setUseEnvironmentVariables(useEnv);
-            setDatabaseConfig({ enabled: useDb, type: dbType });
-
-            // Calcular estadísticas
-            const routeCount = components.filter(c => c.type === 'route').length;
-            endpointCount = components.filter(c => c.type === 'endpoint').length;
-            
-            // Determinar paquetes npm necesarios con las nuevas configuraciones
-            let npmPackages = 'express';
-            if (useEnv || useDb) {
-                npmPackages += ' dotenv';
-            }
-            if (useDb) {
-                if (dbType === 'mysql') npmPackages += ' mysql2';
-                else if (dbType === 'oracle') npmPackages += ' oracledb';
-                else if (dbType === 'postgresql') npmPackages += ' pg';
-                else if (dbType === 'mssql') npmPackages += ' mssql';
-                else if (dbType === 'mongodb') npmPackages += ' mongodb';
-                else if (dbType === 'redis') npmPackages += ' redis';
-            }
-
-            // PASO 2: Mostrar resumen y confirmar generación
-            const result = await Swal.fire({
-                title: `Código de la API: ${apiConfig.name}`,
-                html: `
-                    <div style="text-align: left; padding: 10px;">
-                        <h3 style="color: #1f2937; margin-bottom: 12px; font-size: 16px;">Especificaciones:</h3>
-                        <div style="background: #f9fafb; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                            <p style="margin: 6px 0; font-size: 14px;"><strong>Puerto:</strong> ${apiConfig.port}</p>
-                            <p style="margin: 6px 0; font-size: 14px;"><strong>Descripción:</strong> ${apiConfig.description || 'Sin descripción'}</p>
-                        </div>
-                        
-                        <h3 style="color: #1f2937; margin-bottom: 12px; font-size: 16px;">Estructura de Proyecto:</h3>
-                        <div style="background: #1f2937; color: #10b981; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 13px; line-height: 1.6;">
-                            <div>mi-api/</div>
-                            <div>├── node_modules/</div>
-                            ${(useEnv || useDb) ? '<div>├── .env                <span style="color: #f59e0b;">← Se generará</span></div>' : ''}
-                            <div>├── package.json</div>
-                            <div>├── server.js          <span style="color: #6b7280;">← Código generado</span></div>
-                            <div>└── README.md</div>
-                        </div>
-                        
-                        ${(useEnv || useDb) ? `
-                            <div style="background: #fef3c7; padding: 12px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #f59e0b;">
-                                <div style="display: flex; align-items: center;">
-                                    <svg style="width: 18px; height: 18px; color: #f59e0b; margin-right: 8px; flex-shrink: 0;" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    <p style="margin: 0; color: #92400e; font-size: 13px; font-weight: 500;">
-                                        Se generará el archivo <strong>.env</strong> que deberás completar con tus credenciales
-                                    </p>
-                                </div>
-                            </div>
-                        ` : ''}
-                    </div>
-                `,
-                showDenyButton: true,
-                showCancelButton: true,
-                confirmButtonText: '<div style="display: flex; align-items: center;"><svg style="width: 18px; height: 18px; margin-right: 6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Generar y Copiar</div>',
-                denyButtonText: '<div style="display: flex; align-items: center;"><svg style="width: 18px; height: 18px; margin-right: 6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg> Volver a Configuración</div>',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#10b981',
-                denyButtonColor: '#8b5cf6',
-                cancelButtonColor: '#6b7280',
-                width: '600px',
-                backdrop: `
-                    rgba(0,0,0,0.6)
-                    left top
-                    no-repeat
-                `,
-                customClass: {
-                    container: 'blur-backdrop'
-                }
-            });
-
-            // Si eligió volver, continúa el loop
-            if (result.isDenied) {
-                continue;
-            }
-
-            // Si canceló, sale
-            if (result.isDismissed) {
-                return;
-            }
-
-            // Si confirmó, sale del loop
-            if (result.isConfirmed) {
-                showConfig = false;
-            }
-        }
-
-        // FUERA DEL WHILE: Generar el código
+        // Generar el código
         const code = generateAPICode(useEnv, { enabled: useDb, type: dbType });
         const envContent = generateEnvFile(useEnv, { enabled: useDb, type: dbType });
+        
+        // Calcular estadísticas
+        const endpointCount = components.filter(c => c.type === 'endpoint').length;
         
         // Copiar código al portapapeles
         try {
@@ -1866,7 +1730,7 @@ export default function App() {
                             <label className="block text-xs font-semibold text-green-800 mb-2 flex items-center">
                                 Respuesta Exitosa
                             </label>
-                            
+
                             {/* Código de Estado */}
                             <div className="mb-3">
                                 <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -2532,7 +2396,6 @@ export default function App() {
                 }
             `}</style>
             <div className="flex h-screen bg-gray-100">
-            {/* Barra lateral */}
             <div className="w-80 bg-white shadow-lg border-r border-gray-200 p-4 flex flex-col overflow-y-auto">
                 <h2 className="text-xl font-bold text-gray-800 mb-2 flex items-center">
                     <Code className="mr-2" size={24} />
@@ -2540,7 +2403,6 @@ export default function App() {
                 </h2>
                 <p className="text-sm text-gray-600 mb-6">Genera tu API visualmente</p>
 
-                {/* Configuración de la API */}
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                     <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
                         <Server size={16} className="mr-1" />
@@ -2613,7 +2475,6 @@ export default function App() {
                     })}
                 </div>
 
-                {/* Estadísticas */}
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                     <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
                         <Settings size={16} className="mr-1" />
@@ -2640,7 +2501,6 @@ export default function App() {
                     </div>
                 </div>
 
-                {/* Instrucciones */}
                 <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
                     <h3 className="text-xs font-semibold text-blue-800 mb-2">Cómo usar:</h3>
                     <ul className="text-xs text-blue-700 space-y-1">
@@ -2653,11 +2513,10 @@ export default function App() {
                     </ul>
                 </div>
 
-                {/* Acciones */}
                 <div className="space-y-3 mt-auto">
                     <button
                         onClick={handleExportCode}
-                        className="w-full bg-purple-500 text-white p-3 rounded-lg font-medium hover:bg-purple-600 transition-colors flex items-center justify-center"
+                        className="w-full bg-purple-500 text-white p-3 rounded-lg font-medium hover:bg-purple-600 transition-colors flex items-center justify-center border-0 outline-none focus:outline-none"
                     >
                         <Download size={18} className="mr-2" />
                         Generar Código
@@ -2665,7 +2524,7 @@ export default function App() {
 
                     <button
                         onClick={handleClearAll}
-                        className="w-full bg-red-500 text-white p-3 rounded-lg font-medium hover:bg-red-600 transition-colors flex items-center justify-center"
+                        className="w-full bg-red-500 text-white p-3 rounded-lg font-medium hover:bg-red-600 transition-colors flex items-center justify-center border-0 outline-none focus:outline-none"
                     >
                         <Trash2 size={18} className="mr-2" />
                         Limpiar Todo
@@ -2673,7 +2532,6 @@ export default function App() {
                 </div>
             </div>
 
-            {/* Área principal */}
             <div className="flex-1 flex flex-col">
                 <div className="bg-white border-b border-gray-200 p-6">
                     <div className="flex items-center justify-between">
@@ -2692,7 +2550,7 @@ export default function App() {
                         <div className="flex items-center space-x-3">
                             <button
                                 onClick={showTutorial}
-                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors shadow-sm"
+                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors shadow-sm border-0 outline-none focus:outline-none"
                                 title="Ver Tutorial"
                             >
                                 <HelpCircle size={18} className="mr-2" />
@@ -2750,11 +2608,17 @@ export default function App() {
             </div>
         </div>
 
-        {/* Modal del Tutorial */}
         {showTutorialModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
+            <div 
+                className="fixed inset-0 z-50 flex items-center justify-center p-4" 
+                style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+                onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                        setShowTutorialModal(false);
+                    }
+                }}
+            >
                 <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col animate-fadeIn">
-                    {/* Header */}
                     <div className="border-b border-gray-200 p-6 pb-4">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-bold text-gray-800">{tutorialContent[tutorialStep].title}</h2>
@@ -2765,7 +2629,6 @@ export default function App() {
                                 <X size={24} />
                             </button>
                         </div>
-                        {/* Indicadores de progreso */}
                         <div className="flex items-center justify-center gap-2">
                             {tutorialContent.map((_, index) => (
                                 <div
@@ -2783,12 +2646,10 @@ export default function App() {
                         </div>
                     </div>
 
-                    {/* Contenido */}
                     <div className="flex-1 overflow-y-auto">
                         {tutorialContent[tutorialStep].content}
                     </div>
 
-                    {/* Footer con botones */}
                     <div className="border-t border-gray-200 p-4 flex items-center justify-between bg-gray-50 rounded-b-xl">
                         <button
                             onClick={closeTutorial}
@@ -2827,6 +2688,208 @@ export default function App() {
                                         <ChevronRight size={18} className="ml-1" />
                                     </>
                                 )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {showCodeGenModal && (
+            <div 
+                className="fixed inset-0 z-50 flex items-center justify-center p-4" 
+                style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+                onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                        setShowCodeGenModal(false);
+                    }
+                }}
+            >
+                <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full animate-fadeIn">
+                    <div className="border-b border-gray-200 p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <Settings className="text-purple-500 mr-3" size={24} />
+                                <h2 className="text-xl font-bold text-gray-800">Configuración Avanzada</h2>
+                            </div>
+                            <button
+                                onClick={() => setShowCodeGenModal(false)}
+                                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <p className="text-gray-600 text-sm mt-2">Selecciona las opciones para tu proyecto</p>
+                    </div>
+
+                    <div className="p-6 space-y-4">
+                        <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
+                            <label className="flex items-center justify-between mb-3 cursor-pointer">
+                                <div className="flex items-center">
+                                    <Lock className="text-blue-600 mr-2" size={20} />
+                                    <div>
+                                        <h3 className="font-bold text-gray-800">Variables de Entorno</h3>
+                                        <p className="text-sm text-gray-600">Usar archivo .env para configuración</p>
+                                    </div>
+                                </div>
+                                <div className="relative inline-flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={tempUseEnv}
+                                        onChange={(e) => setTempUseEnv(e.target.checked)}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
+                            <label className="flex items-center justify-between mb-3 cursor-pointer">
+                                <div className="flex items-center">
+                                    <Database className="text-purple-600 mr-2" size={20} />
+                                    <div>
+                                        <h3 className="font-bold text-gray-800">Conector de Base de Datos</h3>
+                                        <p className="text-sm text-gray-600">Incluir configuración de base de datos</p>
+                                    </div>
+                                </div>
+                                <div className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={tempUseDb}
+                                        onChange={(e) => setTempUseDb(e.target.checked)}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                                </div>
+                            </label>
+                            
+                            {tempUseDb && (
+                                <div className="pt-3 border-t border-gray-300 mt-3">
+                                    <label className="block font-medium text-gray-700 mb-2 text-sm">Tipo de Base de Datos</label>
+                                    <select
+                                        value={tempDbType}
+                                        onChange={(e) => setTempDbType(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none focus:outline-none"
+                                    >
+                                        <option value="mysql">MySQL</option>
+                                        <option value="oracle">Oracle SQL</option>
+                                        <option value="postgresql">PostgreSQL</option>
+                                        <option value="mssql">Microsoft SQL Server</option>
+                                        <option value="mongodb">MongoDB</option>
+                                        <option value="redis">Redis</option>
+                                    </select>
+                                    <div className="bg-blue-50 p-3 rounded-lg mt-3 border-l-4 border-blue-500">
+                                        <div className="flex items-center text-blue-800 text-xs">
+                                            <Lock size={14} className="mr-2 flex-shrink-0" />
+                                            Las credenciales se configurarán en el archivo .env
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="border-t border-gray-200 p-4 flex items-center justify-end gap-3 bg-gray-50 rounded-b-xl">
+                        <button
+                            onClick={() => setShowCodeGenModal(false)}
+                            className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleContinueFromConfig}
+                            className="flex items-center px-5 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium"
+                        >
+                            Continuar
+                            <ChevronRight size={18} className="ml-1" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {showConfigSummary && (
+            <div 
+                className="fixed inset-0 z-50 flex items-center justify-center p-4" 
+                style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+                onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                        setShowConfigSummary(false);
+                    }
+                }}
+            >
+                <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full animate-fadeIn">
+                    <div className="border-b border-gray-200 p-6">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-bold text-gray-800">Código de la API: {apiConfig.name}</h2>
+                            <button
+                                onClick={() => setShowConfigSummary(false)}
+                                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="p-6 space-y-4">
+                        <div>
+                            <h3 className="text-gray-800 font-semibold mb-3">Especificaciones:</h3>
+                            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                                <p className="text-sm"><strong>Puerto:</strong> {apiConfig.port}</p>
+                                <p className="text-sm"><strong>Descripción:</strong> {apiConfig.description || 'Sin descripción'}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 className="text-gray-800 font-semibold mb-3">Estructura de Proyecto:</h3>
+                            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm space-y-1">
+                                <div>mi-api/</div>
+                                <div>├── node_modules/</div>
+                                {(tempUseEnv || tempUseDb) && <div>├── .env                <span className="text-yellow-500">← Se generará</span></div>}
+                                <div>├── package.json</div>
+                                <div>├── server.js          <span className="text-gray-500">← Código generado</span></div>
+                                <div>└── README.md</div>
+                            </div>
+                        </div>
+
+                        {(tempUseEnv || tempUseDb) && (
+                            <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                                <div className="flex items-center">
+                                    <AlertTriangle className="text-yellow-600 mr-2 flex-shrink-0" size={18} />
+                                    <p className="text-yellow-800 text-sm font-medium">
+                                        Se generará el archivo <strong>.env</strong> que deberás completar con tus credenciales
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="border-t border-gray-200 p-4 flex items-center justify-between bg-gray-50 rounded-b-xl">
+                        <button
+                            onClick={() => {
+                                setShowConfigSummary(false);
+                                setShowCodeGenModal(true);
+                            }}
+                            className="flex items-center px-4 py-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-colors text-sm font-medium"
+                        >
+                            <ArrowLeft size={18} className="mr-1" />
+                            Volver a Configuración
+                        </button>
+                        
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowConfigSummary(false)}
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleGenerateAndCopy}
+                                className="flex items-center px-5 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
+                            >
+                                <Download size={18} className="mr-2" />
+                                Generar y Copiar
                             </button>
                         </div>
                     </div>
