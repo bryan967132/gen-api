@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Route, Zap, Code, Settings, Download, Trash2, ChevronDown, ChevronUp, Move, Server, Globe, Hash, FileText, User, Search, HelpCircle, X, ChevronLeft, ChevronRight, Lock, RefreshCw, CheckCircle, AlertTriangle, Info, Database, BookOpen, ArrowLeft, Check } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { generateDatabaseConnector, generateEnvFile, generateAPICode } from './utils/codeGenerator';
+import Sidebar from './components/Sidebar';
+import TutorialModal from './components/TutorialModal';
+import CodeGenModal from './components/CodeGenModal';
+import ConfigSummaryModal from './components/ConfigSummaryModal';
 
 export default function App() {
     const [apiConfig, setApiConfig] = useState({
@@ -1062,7 +1067,7 @@ export default function App() {
         setShowConfigSummary(false);
 
         // Generar el código
-        const code = generateAPICode(useEnv, { enabled: useDb, type: dbType });
+        const code = generateAPICode(components, apiConfig, useEnv, { enabled: useDb, type: dbType }, getFullPath);
         const envContent = generateEnvFile(useEnv, { enabled: useDb, type: dbType });
         
         // Calcular estadísticas
@@ -1207,330 +1212,7 @@ export default function App() {
         }
     };
 
-    const generateDatabaseConnector = (dbConfig = databaseConfig) => {
-        if (!dbConfig.enabled) return '';
-        
-        const { type } = dbConfig;
-        let code = '';
-        
-        if (type === 'mysql') {
-            code += `\n// MySQL Database Connection\n`;
-            code += `const mysql = require('mysql2/promise');\n\n`;
-            code += `const pool = mysql.createPool({\n`;
-            code += `  host: process.env.DB_HOST,\n`;
-            code += `  port: process.env.DB_PORT,\n`;
-            code += `  database: process.env.DB_DATABASE,\n`;
-            code += `  user: process.env.DB_USER,\n`;
-            code += `  password: process.env.DB_PASSWORD,\n`;
-            code += `  waitForConnections: true,\n`;
-            code += `  connectionLimit: 10,\n`;
-            code += `  queueLimit: 0\n`;
-            code += `});\n\n`;
-            code += `// Test database connection\n`;
-            code += `pool.getConnection()\n`;
-            code += `  .then(connection => {\n`;
-            code += `    console.log('[SUCCESS] MySQL Database connected successfully');\n`;
-            code += `    connection.release();\n`;
-            code += `  })\n`;
-            code += `  .catch(err => {\n`;
-            code += `    console.error('[ERROR] MySQL Database connection failed:', err.message);\n`;
-            code += `  });\n\n`;
-            
-        } else if (type === 'oracle') {
-            code += `\n// Oracle SQL Database Connection\n`;
-            code += `const oracledb = require('oracledb');\n\n`;
-            code += `oracledb.autoCommit = true;\n\n`;
-            code += `async function initializeDatabase() {\n`;
-            code += `  try {\n`;
-            code += `    await oracledb.createPool({\n`;
-            code += `      user: process.env.DB_USER,\n`;
-            code += `      password: process.env.DB_PASSWORD,\n`;
-            code += `      connectString: process.env.DB_CONNECTION_STRING,\n`;
-            code += `      poolMin: 2,\n`;
-            code += `      poolMax: 10,\n`;
-            code += `      poolIncrement: 1\n`;
-            code += `    });\n`;
-            code += `    console.log('[SUCCESS] Oracle Database connected successfully');\n`;
-            code += `  } catch (err) {\n`;
-            code += `    console.error('[ERROR] Oracle Database connection failed:', err.message);\n`;
-            code += `  }\n`;
-            code += `}\n\n`;
-            code += `initializeDatabase();\n\n`;
-            
-        } else if (type === 'postgresql') {
-            code += `\n// PostgreSQL Database Connection\n`;
-            code += `const { Pool } = require('pg');\n\n`;
-            code += `const pool = new Pool({\n`;
-            code += `  host: process.env.DB_HOST,\n`;
-            code += `  port: process.env.DB_PORT,\n`;
-            code += `  database: process.env.DB_DATABASE,\n`;
-            code += `  user: process.env.DB_USER,\n`;
-            code += `  password: process.env.DB_PASSWORD,\n`;
-            code += `  max: 10,\n`;
-            code += `  idleTimeoutMillis: 30000\n`;
-            code += `});\n\n`;
-            code += `// Test database connection\n`;
-            code += `pool.connect()\n`;
-            code += `  .then(client => {\n`;
-            code += `    console.log('[SUCCESS] PostgreSQL Database connected successfully');\n`;
-            code += `    client.release();\n`;
-            code += `  })\n`;
-            code += `  .catch(err => {\n`;
-            code += `    console.error('[ERROR] PostgreSQL Database connection failed:', err.message);\n`;
-            code += `  });\n\n`;
-            
-        } else if (type === 'mssql') {
-            code += `\n// Microsoft SQL Server Database Connection\n`;
-            code += `const sql = require('mssql');\n\n`;
-            code += `const sqlConfig = {\n`;
-            code += `  user: process.env.DB_USER,\n`;
-            code += `  password: process.env.DB_PASSWORD,\n`;
-            code += `  database: process.env.DB_DATABASE,\n`;
-            code += `  server: process.env.DB_HOST,\n`;
-            code += `  port: parseInt(process.env.DB_PORT),\n`;
-            code += `  pool: {\n`;
-            code += `    max: 10,\n`;
-            code += `    min: 0,\n`;
-            code += `    idleTimeoutMillis: 30000\n`;
-            code += `  },\n`;
-            code += `  options: {\n`;
-            code += `    encrypt: true,\n`;
-            code += `    trustServerCertificate: true\n`;
-            code += `  }\n`;
-            code += `};\n\n`;
-            code += `// Test database connection\n`;
-            code += `sql.connect(sqlConfig)\n`;
-            code += `  .then(pool => {\n`;
-            code += `    console.log('[SUCCESS] MSSQL Database connected successfully');\n`;
-            code += `  })\n`;
-            code += `  .catch(err => {\n`;
-            code += `    console.error('[ERROR] MSSQL Database connection failed:', err.message);\n`;
-            code += `  });\n\n`;
-            
-        } else if (type === 'mongodb') {
-            code += `\n// MongoDB Database Connection\n`;
-            code += `const { MongoClient } = require('mongodb');\n\n`;
-            code += `const mongoUrl = process.env.MONGO_URL || \`mongodb://\${process.env.DB_USER}:\${process.env.DB_PASSWORD}@\${process.env.DB_HOST}:\${process.env.DB_PORT}/\${process.env.DB_DATABASE}\`;\n`;
-            code += `const mongoClient = new MongoClient(mongoUrl);\n\n`;
-            code += `let db;\n\n`;
-            code += `// Connect to MongoDB\n`;
-            code += `mongoClient.connect()\n`;
-            code += `  .then(() => {\n`;
-            code += `    db = mongoClient.db();\n`;
-            code += `    console.log('[SUCCESS] MongoDB Database connected successfully');\n`;
-            code += `  })\n`;
-            code += `  .catch(err => {\n`;
-            code += `    console.error('[ERROR] MongoDB Database connection failed:', err.message);\n`;
-            code += `  });\n\n`;
-            
-        } else if (type === 'redis') {
-            code += `\n// Redis Database Connection\n`;
-            code += `const redis = require('redis');\n\n`;
-            code += `const redisClient = redis.createClient({\n`;
-            code += `  host: process.env.REDIS_HOST,\n`;
-            code += `  port: process.env.REDIS_PORT,\n`;
-            code += `  password: process.env.REDIS_PASSWORD\n`;
-            code += `});\n\n`;
-            code += `redisClient.on('connect', () => {\n`;
-            code += `  console.log('[SUCCESS] Redis Database connected successfully');\n`;
-            code += `});\n\n`;
-            code += `redisClient.on('error', (err) => {\n`;
-            code += `  console.error('[ERROR] Redis Database connection failed:', err.message);\n`;
-            code += `});\n\n`;
-            code += `redisClient.connect();\n\n`;
-        }
-        
-        return code;
-    };
-    
-    const generateEnvFile = (useEnv = useEnvironmentVariables, dbConfig = databaseConfig) => {
-        let envContent = '';
-        
-        // Puerto de la API si usa variables de entorno
-        if (useEnv) {
-            envContent += `# Server Configuration\n`;
-            envContent += `PORT=\n\n`;
-        }
-        
-        // Variables de base de datos
-        if (dbConfig.enabled) {
-            const { type } = dbConfig;
-            
-            envContent += `# Database Configuration\n`;
-            
-            if (type === 'mysql') {
-                envContent += `DB_HOST=\n`;
-                envContent += `DB_PORT=\n`;
-                envContent += `DB_DATABASE=\n`;
-                envContent += `DB_USER=\n`;
-                envContent += `DB_PASSWORD=\n`;
-            } else if (type === 'oracle') {
-                envContent += `DB_USER=\n`;
-                envContent += `DB_PASSWORD=\n`;
-                envContent += `DB_CONNECTION_STRING=\n`;
-            } else if (type === 'postgresql') {
-                envContent += `DB_HOST=\n`;
-                envContent += `DB_PORT=\n`;
-                envContent += `DB_DATABASE=\n`;
-                envContent += `DB_USER=\n`;
-                envContent += `DB_PASSWORD=\n`;
-            } else if (type === 'mssql') {
-                envContent += `DB_HOST=\n`;
-                envContent += `DB_PORT=\n`;
-                envContent += `DB_DATABASE=\n`;
-                envContent += `DB_USER=\n`;
-                envContent += `DB_PASSWORD=\n`;
-            } else if (type === 'mongodb') {
-                envContent += `DB_HOST=\n`;
-                envContent += `DB_PORT=\n`;
-                envContent += `DB_DATABASE=\n`;
-                envContent += `DB_USER=\n`;
-                envContent += `DB_PASSWORD=\n`;
-                envContent += `# O usa una URL completa:\n`;
-                envContent += `# MONGO_URL=\n`;
-            } else if (type === 'redis') {
-                envContent += `REDIS_HOST=\n`;
-                envContent += `REDIS_PORT=\n`;
-                envContent += `REDIS_PASSWORD=\n`;
-            }
-        }
-        
-        return envContent;
-    };
 
-    const generateAPICode = (useEnv = useEnvironmentVariables, dbConfig = databaseConfig) => {
-        const endpoints = components.filter(c => c.type === 'endpoint');
-        
-        let code = `// ${apiConfig.name}\n// ${apiConfig.description}\n\n`;
-        
-        // Requerir dotenv si se usan variables de entorno O si hay base de datos
-        if (useEnv || dbConfig.enabled) {
-            code += `require('dotenv').config();\n`;
-        }
-        
-        code += `const express = require('express');\nconst app = express();\n\n`;
-        code += `app.use(express.json());\napp.use(express.urlencoded({ extended: true }));\n`;
-        
-        // Agregar conector de base de datos
-        code += generateDatabaseConnector(dbConfig);
-        
-        endpoints.forEach(endpoint => {
-            const method = endpoint.method.toLowerCase();
-            const fullPath = getFullPath(endpoint);
-
-            code += `// ${endpoint.method} ${fullPath}\n`;
-            
-            // Obtener los parámetros según el tipo
-            let params = [];
-            switch (endpoint.parameterType) {
-                case 'route':
-                    params = endpoint.routeParams || [];
-                    break;
-                case 'query':
-                    params = endpoint.queryParams || [];
-                    break;
-                case 'body':
-                    params = endpoint.bodyParams || [];
-                    break;
-                case 'headers':
-                    params = endpoint.headerParams || [];
-                    break;
-            }
-            
-            if (endpoint.parameterType !== 'none' && params.length > 0) {
-                code += `// Parámetros (${endpoint.parameterType}): ${params.join(', ')}\n`;
-            }
-
-            code += `app.${method}('${fullPath}', (req, res) => {\n`;
-
-            if (endpoint.parameterType !== 'none' && params.length > 0) {
-                switch (endpoint.parameterType) {
-                    case 'route':
-                        code += `  // Route params: ${params.join(', ')}\n`;
-                        code += `  const routeParams = req.params;\n`;
-                        params.forEach(param => {
-                            code += `  // const ${param} = req.params.${param};\n`;
-                        });
-                        break;
-                    case 'query':
-                        code += `  // Query params: ${params.join(', ')}\n`;
-                        code += `  const queryParams = req.query;\n`;
-                        params.forEach(param => {
-                            code += `  // const ${param} = req.query.${param};\n`;
-                        });
-                        break;
-                    case 'body':
-                        code += `  // Body params: ${params.join(', ')}\n`;
-                        code += `  const bodyData = req.body;\n`;
-                        params.forEach(param => {
-                            code += `  // const ${param} = req.body.${param};\n`;
-                        });
-                        break;
-                    case 'headers':
-                        code += `  // Headers: ${params.join(', ')}\n`;
-                        code += `  const headers = req.headers;\n`;
-                        params.forEach(param => {
-                            code += `  // const ${param} = req.headers['${param.toLowerCase()}'];\n`;
-                        });
-                        break;
-                }
-            }
-
-            code += `  try {\n`;
-            
-            // Agregar ejemplo de query a base de datos si está habilitado
-            if (dbConfig.enabled) {
-                const { type } = dbConfig;
-                code += `    // Ejemplo de consulta a base de datos:\n`;
-                
-                if (type === 'mysql') {
-                    code += `    // const [rows] = await pool.query('SELECT * FROM tabla WHERE id = ?', [id]);\n`;
-                } else if (type === 'oracle') {
-                    code += `    // const connection = await oracledb.getConnection();\n`;
-                    code += `    // const result = await connection.execute('SELECT * FROM tabla WHERE id = :id', [id]);\n`;
-                    code += `    // await connection.close();\n`;
-                } else if (type === 'postgresql') {
-                    code += `    // const result = await pool.query('SELECT * FROM tabla WHERE id = $1', [id]);\n`;
-                } else if (type === 'mssql') {
-                    code += `    // const result = await sql.query\`SELECT * FROM tabla WHERE id = \${id}\`;\n`;
-                } else if (type === 'mongodb') {
-                    code += `    // const result = await db.collection('coleccion').find({}).toArray();\n`;
-                } else if (type === 'redis') {
-                    code += `    // const value = await redisClient.get('key');\n`;
-                    code += `    // await redisClient.set('key', 'value');\n`;
-                }
-                
-                code += `\n`;
-            }
-            
-            // Construir respuesta de éxito
-            const successResponse = endpoint.successResponse || { statusCode: 200, fields: [] };
-            const successObj = {};
-            successResponse.fields.forEach(field => {
-                successObj[field.key] = field.value;
-            });
-            code += `    res.status(${successResponse.statusCode}).json(${JSON.stringify(successObj, null, 4).replace(/\n/g, '\n    ')});\n`;
-            
-            code += `  } catch (error) {\n`;
-            
-            // Construir respuesta de error
-            const errorResponse = endpoint.errorResponse || { statusCode: 500, fields: [] };
-            const errorObj = {};
-            errorResponse.fields.forEach(field => {
-                errorObj[field.key] = field.value;
-            });
-            code += `    res.status(${errorResponse.statusCode}).json(${JSON.stringify(errorObj, null, 4).replace(/\n/g, '\n    ')});\n`;
-            
-            code += `  }\n});\n\n`;
-        });
-
-        // Puerto desde variable de entorno o hardcoded
-        const portValue = useEnv ? 'process.env.PORT || ' + apiConfig.port : apiConfig.port;
-        code += `const PORT = ${portValue};\n`;
-        code += `app.listen(PORT, () => {\n  console.log('${apiConfig.name} running on port ' + PORT);\n});`;
-
-        return code;
-    };
 
     const renderParameterSection = (component) => {
         return (
@@ -2396,141 +2078,19 @@ export default function App() {
                 }
             `}</style>
             <div className="flex h-screen bg-gray-100">
-            <div className="w-80 bg-white shadow-lg border-r border-gray-200 p-4 flex flex-col overflow-y-auto">
-                <h2 className="text-xl font-bold text-gray-800 mb-2 flex items-center">
-                    <Code className="mr-2" size={24} />
-                    GenAPI
-                </h2>
-                <p className="text-sm text-gray-600 mb-6">Genera tu API visualmente</p>
-
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                        <Server size={16} className="mr-1" />
-                        Configuración de la API
-                    </h3>
-                    <div className="space-y-3">
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Nombre</label>
-                            <input
-                                type="text"
-                                value={apiConfig.name}
-                                onChange={(e) => setApiConfig(prev => ({ ...prev, name: e.target.value }))}
-                                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                placeholder="Mi API"
-                                spellCheck={false}
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Puerto</label>
-                            <input
-                                type="number"
-                                min="1"
-                                max="65535"
-                                value={apiConfig.port}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 65535)) {
-                                        setApiConfig(prev => ({ ...prev, port: parseInt(value) || '' }));
-                                    }
-                                }}
-                                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                placeholder="3000"
-                                spellCheck={false}
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Descripción</label>
-                            <textarea
-                                value={apiConfig.description}
-                                onChange={(e) => setApiConfig(prev => ({ ...prev, description: e.target.value }))}
-                                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                rows="2"
-                                placeholder="Descripción de la API"
-                                spellCheck={false}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="space-y-3 mb-6">
-                    {componentTypes.map((component) => {
-                        const IconComponent = component.icon;
-                        return (
-                            <div
-                                key={component.type}
-                                draggable
-                                onDragStart={(e) => handleDragStart(e, component.type)}
-                                onDragEnd={handleDragEnd}
-                                className={`${component.color} text-white p-4 rounded-lg cursor-grab active:cursor-grabbing hover:opacity-90 transition-all shadow-md`}
-                            >
-                                <div className="flex items-center space-x-3 mb-2">
-                                    <IconComponent size={20} />
-                                    <span className="font-semibold">{component.name}</span>
-                                </div>
-                                <p className="text-xs opacity-90">{component.description}</p>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                        <Settings size={16} className="mr-1" />
-                        Estadísticas
-                    </h3>
-                    <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Rutas:</span>
-                            <span className="font-semibold text-blue-600">{routeCount}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Endpoints independientes:</span>
-                            <span className="font-semibold text-green-600">{independentEndpointCount}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Endpoints anidados:</span>
-                            <span className="font-semibold text-purple-600">{nestedEndpointCount}</span>
-                        </div>
-                        <hr className="my-2" />
-                        <div className="flex justify-between font-semibold">
-                            <span className="text-gray-700">Total endpoints:</span>
-                            <span className="text-gray-800">{endpointCount}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <h3 className="text-xs font-semibold text-blue-800 mb-2">Cómo usar:</h3>
-                    <ul className="text-xs text-blue-700 space-y-1">
-                        <li>• Arrastra <strong>Rutas</strong> al área principal</li>
-                        <li>• <strong>Arrastra componentes existentes</strong> para reubicarlos</li>
-                        <li>• Arrastra elementos dentro de rutas para anidar</li>
-                        <li>• Las rutas pueden contener subrutas</li>
-                        <li>• Configura parámetros en cada endpoint</li>
-                        <li>• Los paths se combinan automáticamente</li>
-                    </ul>
-                </div>
-
-                <div className="space-y-3 mt-auto">
-                    <button
-                        onClick={handleExportCode}
-                        className="w-full bg-purple-500 text-white p-3 rounded-lg font-medium hover:bg-purple-600 transition-colors flex items-center justify-center border-0 outline-none focus:outline-none"
-                    >
-                        <Download size={18} className="mr-2" />
-                        Generar Código
-                    </button>
-
-                    <button
-                        onClick={handleClearAll}
-                        className="w-full bg-red-500 text-white p-3 rounded-lg font-medium hover:bg-red-600 transition-colors flex items-center justify-center border-0 outline-none focus:outline-none"
-                    >
-                        <Trash2 size={18} className="mr-2" />
-                        Limpiar Todo
-                    </button>
-                </div>
-            </div>
+            <Sidebar
+                apiConfig={apiConfig}
+                setApiConfig={setApiConfig}
+                componentTypes={componentTypes}
+                handleDragStart={handleDragStart}
+                handleDragEnd={handleDragEnd}
+                handleExportCode={handleExportCode}
+                handleClearAll={handleClearAll}
+                routeCount={routeCount}
+                endpointCount={endpointCount}
+                nestedEndpointCount={nestedEndpointCount}
+                independentEndpointCount={independentEndpointCount}
+            />
 
             <div className="flex-1 flex flex-col">
                 <div className="bg-white border-b border-gray-200 p-6">
@@ -2608,294 +2168,37 @@ export default function App() {
             </div>
         </div>
 
-        {showTutorialModal && (
-            <div 
-                className="fixed inset-0 z-50 flex items-center justify-center p-4" 
-                style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
-                onClick={(e) => {
-                    if (e.target === e.currentTarget) {
-                        setShowTutorialModal(false);
-                    }
-                }}
-            >
-                <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col animate-fadeIn">
-                    <div className="border-b border-gray-200 p-6 pb-4">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold text-gray-800">{tutorialContent[tutorialStep].title}</h2>
-                            <button
-                                onClick={closeTutorial}
-                                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-                        <div className="flex items-center justify-center gap-2">
-                            {tutorialContent.map((_, index) => (
-                                <div
-                                    key={index}
-                                    className={`h-2 rounded-full transition-all duration-300 ${
-                                        index === tutorialStep 
-                                            ? 'w-8 bg-purple-500' 
-                                            : 'w-2 bg-gray-300'
-                                    }`}
-                                />
-                            ))}
-                        </div>
-                        <div className="text-center text-gray-500 text-xs mt-2">
-                            Paso {tutorialStep + 1} de {tutorialContent.length}
-                        </div>
-                    </div>
+        <TutorialModal
+            showTutorialModal={showTutorialModal}
+            tutorialStep={tutorialStep}
+            tutorialContent={tutorialContent}
+            closeTutorial={closeTutorial}
+            prevTutorialStep={prevTutorialStep}
+            nextTutorialStep={nextTutorialStep}
+        />
 
-                    <div className="flex-1 overflow-y-auto">
-                        {tutorialContent[tutorialStep].content}
-                    </div>
+        <CodeGenModal
+            showCodeGenModal={showCodeGenModal}
+            tempUseEnv={tempUseEnv}
+            setTempUseEnv={setTempUseEnv}
+            tempUseDb={tempUseDb}
+            setTempUseDb={setTempUseDb}
+            tempDbType={tempDbType}
+            setTempDbType={setTempDbType}
+            setShowCodeGenModal={setShowCodeGenModal}
+            handleContinueFromConfig={handleContinueFromConfig}
+        />
 
-                    <div className="border-t border-gray-200 p-4 flex items-center justify-between bg-gray-50 rounded-b-xl">
-                        <button
-                            onClick={closeTutorial}
-                            className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium"
-                        >
-                            Salir
-                        </button>
-                        
-                        <div className="flex items-center gap-2">
-                            {tutorialStep > 0 && (
-                                <button
-                                    onClick={prevTutorialStep}
-                                    className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium"
-                                >
-                                    <ChevronLeft size={18} className="mr-1" />
-                                    Anterior
-                                </button>
-                            )}
-                            
-                            <button
-                                onClick={nextTutorialStep}
-                                className={`flex items-center px-5 py-2 text-white rounded-lg transition-colors text-sm font-medium ${
-                                    tutorialStep === tutorialContent.length - 1
-                                        ? 'bg-green-500 hover:bg-green-600'
-                                        : 'bg-purple-500 hover:bg-purple-600'
-                                }`}
-                            >
-                                {tutorialStep === tutorialContent.length - 1 ? (
-                                    <>
-                                        <Check size={18} className="mr-1" />
-                                        Finalizar
-                                    </>
-                                ) : (
-                                    <>
-                                        Siguiente
-                                        <ChevronRight size={18} className="ml-1" />
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )}
 
-        {showCodeGenModal && (
-            <div 
-                className="fixed inset-0 z-50 flex items-center justify-center p-4" 
-                style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
-                onClick={(e) => {
-                    if (e.target === e.currentTarget) {
-                        setShowCodeGenModal(false);
-                    }
-                }}
-            >
-                <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full animate-fadeIn">
-                    <div className="border-b border-gray-200 p-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <Settings className="text-purple-500 mr-3" size={24} />
-                                <h2 className="text-xl font-bold text-gray-800">Configuración Avanzada</h2>
-                            </div>
-                            <button
-                                onClick={() => setShowCodeGenModal(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-                        <p className="text-gray-600 text-sm mt-2">Selecciona las opciones para tu proyecto</p>
-                    </div>
-
-                    <div className="p-6 space-y-4">
-                        <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
-                            <label className="flex items-center justify-between mb-3 cursor-pointer">
-                                <div className="flex items-center">
-                                    <Lock className="text-blue-600 mr-2" size={20} />
-                                    <div>
-                                        <h3 className="font-bold text-gray-800">Variables de Entorno</h3>
-                                        <p className="text-sm text-gray-600">Usar archivo .env para configuración</p>
-                                    </div>
-                                </div>
-                                <div className="relative inline-flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={tempUseEnv}
-                                        onChange={(e) => setTempUseEnv(e.target.checked)}
-                                        className="sr-only peer"
-                                    />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </div>
-                            </label>
-                        </div>
-
-                        <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
-                            <label className="flex items-center justify-between mb-3 cursor-pointer">
-                                <div className="flex items-center">
-                                    <Database className="text-purple-600 mr-2" size={20} />
-                                    <div>
-                                        <h3 className="font-bold text-gray-800">Conector de Base de Datos</h3>
-                                        <p className="text-sm text-gray-600">Incluir configuración de base de datos</p>
-                                    </div>
-                                </div>
-                                <div className="relative inline-flex items-center cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={tempUseDb}
-                                        onChange={(e) => setTempUseDb(e.target.checked)}
-                                        className="sr-only peer"
-                                    />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                                </div>
-                            </label>
-                            
-                            {tempUseDb && (
-                                <div className="pt-3 border-t border-gray-300 mt-3">
-                                    <label className="block font-medium text-gray-700 mb-2 text-sm">Tipo de Base de Datos</label>
-                                    <select
-                                        value={tempDbType}
-                                        onChange={(e) => setTempDbType(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none focus:outline-none"
-                                    >
-                                        <option value="mysql">MySQL</option>
-                                        <option value="oracle">Oracle SQL</option>
-                                        <option value="postgresql">PostgreSQL</option>
-                                        <option value="mssql">Microsoft SQL Server</option>
-                                        <option value="mongodb">MongoDB</option>
-                                        <option value="redis">Redis</option>
-                                    </select>
-                                    <div className="bg-blue-50 p-3 rounded-lg mt-3 border-l-4 border-blue-500">
-                                        <div className="flex items-center text-blue-800 text-xs">
-                                            <Lock size={14} className="mr-2 flex-shrink-0" />
-                                            Las credenciales se configurarán en el archivo .env
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="border-t border-gray-200 p-4 flex items-center justify-end gap-3 bg-gray-50 rounded-b-xl">
-                        <button
-                            onClick={() => setShowCodeGenModal(false)}
-                            className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            onClick={handleContinueFromConfig}
-                            className="flex items-center px-5 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium"
-                        >
-                            Continuar
-                            <ChevronRight size={18} className="ml-1" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )}
-
-        {showConfigSummary && (
-            <div 
-                className="fixed inset-0 z-50 flex items-center justify-center p-4" 
-                style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
-                onClick={(e) => {
-                    if (e.target === e.currentTarget) {
-                        setShowConfigSummary(false);
-                    }
-                }}
-            >
-                <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full animate-fadeIn">
-                    <div className="border-b border-gray-200 p-6">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-gray-800">Código de la API: {apiConfig.name}</h2>
-                            <button
-                                onClick={() => setShowConfigSummary(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="p-6 space-y-4">
-                        <div>
-                            <h3 className="text-gray-800 font-semibold mb-3">Especificaciones:</h3>
-                            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                                <p className="text-sm"><strong>Puerto:</strong> {apiConfig.port}</p>
-                                <p className="text-sm"><strong>Descripción:</strong> {apiConfig.description || 'Sin descripción'}</p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 className="text-gray-800 font-semibold mb-3">Estructura de Proyecto:</h3>
-                            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm space-y-1">
-                                <div>mi-api/</div>
-                                <div>├── node_modules/</div>
-                                {(tempUseEnv || tempUseDb) && <div>├── .env                <span className="text-yellow-500">← Se generará</span></div>}
-                                <div>├── package.json</div>
-                                <div>├── server.js          <span className="text-gray-500">← Código generado</span></div>
-                                <div>└── README.md</div>
-                            </div>
-                        </div>
-
-                        {(tempUseEnv || tempUseDb) && (
-                            <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
-                                <div className="flex items-center">
-                                    <AlertTriangle className="text-yellow-600 mr-2 flex-shrink-0" size={18} />
-                                    <p className="text-yellow-800 text-sm font-medium">
-                                        Se generará el archivo <strong>.env</strong> que deberás completar con tus credenciales
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="border-t border-gray-200 p-4 flex items-center justify-between bg-gray-50 rounded-b-xl">
-                        <button
-                            onClick={() => {
-                                setShowConfigSummary(false);
-                                setShowCodeGenModal(true);
-                            }}
-                            className="flex items-center px-4 py-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-colors text-sm font-medium"
-                        >
-                            <ArrowLeft size={18} className="mr-1" />
-                            Volver a Configuración
-                        </button>
-                        
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setShowConfigSummary(false)}
-                                className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleGenerateAndCopy}
-                                className="flex items-center px-5 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
-                            >
-                                <Download size={18} className="mr-2" />
-                                Generar y Copiar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )}
+        <ConfigSummaryModal
+            showConfigSummary={showConfigSummary}
+            apiConfig={apiConfig}
+            tempUseEnv={tempUseEnv}
+            tempUseDb={tempUseDb}
+            setShowConfigSummary={setShowConfigSummary}
+            setShowCodeGenModal={setShowCodeGenModal}
+            handleGenerateAndCopy={handleGenerateAndCopy}
+        />
         </>
     );
 }
