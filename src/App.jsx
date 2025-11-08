@@ -6,6 +6,8 @@ import Sidebar from './components/Sidebar';
 import TutorialModal from './components/TutorialModal';
 import CodeGenModal from './components/CodeGenModal';
 import ConfigSummaryModal from './components/ConfigSummaryModal';
+import Header from './components/Header';
+import EmptyCanvas from './components/EmptyCanvas';
 
 export default function App() {
     const [apiConfig, setApiConfig] = useState({
@@ -174,15 +176,12 @@ export default function App() {
                     return prev;
                 }
 
-                console.log('[INFO] Moviendo componente al área principal:', movedComponent);
                 const oldParentId = movedComponent.parentRoute;
-                console.log('[INFO] Padre anterior:', oldParentId);
 
                 // Actualizar todo en una pasada
                 const newState = prev.map(comp => {
                     // Si es el padre anterior, removerlo de sus arrays
                     if (comp.id === oldParentId) {
-                        console.log('[INFO] Removiendo de padre:', comp.name || comp.path);
                         return {
                             ...comp,
                             endpoints: comp.endpoints.filter(id => id !== movedId),
@@ -191,7 +190,6 @@ export default function App() {
                     }
                     // Si es el componente que movemos, actualizar su parent
                     if (comp.id === movedId) {
-                        console.log('[SUCCESS] Actualizando componente - nuevo parent: null');
                         return { 
                             ...comp, 
                             parentRoute: null, 
@@ -200,8 +198,6 @@ export default function App() {
                     }
                     return comp;
                 });
-                
-                console.log('[DEBUG] Nuevo estado:', newState);
                 return newState;
             });
             
@@ -2093,38 +2089,13 @@ export default function App() {
             />
 
             <div className="flex-1 flex flex-col">
-                <div className="bg-white border-b border-gray-200 p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-                                <Globe className="mr-2" size={28} />
-                                {apiConfig.name}
-                            </h1>
-                            <p className="text-gray-600">
-                                Puerto {apiConfig.port} • {routeCount} rutas • {independentEndpointCount} endpoints independientes • {nestedEndpointCount} endpoints anidados
-                            </p>
-                            {apiConfig.description && (
-                                <p className="text-sm text-gray-500 mt-1">{apiConfig.description}</p>
-                            )}
-                        </div>
-                        <div className="flex items-center space-x-3">
-                            <button
-                                onClick={showTutorial}
-                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors shadow-sm border-0 outline-none focus:outline-none"
-                                title="Ver Tutorial"
-                            >
-                                <HelpCircle size={18} className="mr-2" />
-                                Ayuda
-                            </button>
-                            <div className="text-right text-sm text-gray-600">
-                                <div className="flex items-center">
-                                    <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
-                                    <span>Servidor: localhost:{apiConfig.port}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <Header
+                    apiConfig={apiConfig}
+                    routeCount={routeCount}
+                    independentEndpointCount={independentEndpointCount}
+                    nestedEndpointCount={nestedEndpointCount}
+                    onShowTutorial={showTutorial}
+                />
 
                 <div
                     className={`flex-1 p-6 overflow-auto transition-colors ${
@@ -2137,22 +2108,7 @@ export default function App() {
                     onClick={handleCanvasClick}
                 >
                     {components.filter(c => !c.parentRoute).length === 0 ? (
-                        <div className="flex items-center justify-center h-full">
-                            <div className="text-center text-gray-400">
-                                <div className="flex justify-center space-x-4 mb-4">
-                                    <Code size={64} className="opacity-50" />
-                                    <Server size={64} className="opacity-50" />
-                                </div>
-                                <p className="text-xl font-medium mb-2">¡Comienza a construir tu API!</p>
-                                <p className="text-gray-500 mb-4">Arrastra componentes aquí para empezar</p>
-                                <div className="text-sm text-gray-400 space-y-1">
-                                    <p>• Las <strong>rutas</strong> organizan tus endpoints</p>
-                                    <p>• Los <strong>endpoints</strong> definen las respuestas</p>
-                                    <p>• Puedes anidar rutas dentro de rutas</p>
-                                    <p>• <strong>Arrastra componentes existentes</strong> para reorganizar</p>
-                                </div>
-                            </div>
-                        </div>
+                        <EmptyCanvas />
                     ) : (
                         <div className="max-w-6xl mx-auto">
                             {components.map(renderComponent)}
