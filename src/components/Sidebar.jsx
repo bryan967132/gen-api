@@ -1,9 +1,8 @@
-import { Code, Server, Settings, Download, Trash2 } from 'lucide-react';
+import { Code, Server, Settings, Download, Trash2, Route, Zap, } from 'lucide-react';
 
 export default function Sidebar({
     apiConfig,
     setApiConfig,
-    componentTypes,
     handleDragStart,
     handleDragEnd,
     handleExportCode,
@@ -13,6 +12,23 @@ export default function Sidebar({
     nestedEndpointCount,
     independentEndpointCount
 }) {
+    const componentTypes = [
+        { 
+            type: 'route', 
+            icon: Route, 
+            name: 'Ruta', 
+            color: 'bg-blue-500',
+            description: 'Contenedor para endpoints y subrutas'
+        },
+        { 
+            type: 'endpoint', 
+            icon: Zap, 
+            name: 'Endpoint', 
+            color: 'bg-green-500',
+            description: 'Endpoint HTTP individual'
+        }
+    ];
+
     return (
         <div className="w-80 bg-white shadow-lg border-r border-gray-200 p-4 flex flex-col overflow-y-auto">
             <h2 className="text-xl font-bold text-gray-800 mb-2 flex items-center">
