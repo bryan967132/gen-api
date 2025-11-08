@@ -1,5 +1,3 @@
-// Funciones de generación de código extraídas del archivo original
-
 export const generateDatabaseConnector = (databaseConfig) => {
     if (!databaseConfig.enabled) return '';
     
@@ -138,13 +136,13 @@ export const generateDatabaseConnector = (databaseConfig) => {
 
 export const generateEnvFile = (useEnvironmentVariables, databaseConfig) => {
     let envContent = '';
-    
+
     // Puerto de la API si usa variables de entorno
     if (useEnvironmentVariables) {
         envContent += `# Server Configuration\n`;
         envContent += `PORT=\n\n`;
     }
-    
+
     // Variables de base de datos
     if (databaseConfig.enabled) {
         const { type } = databaseConfig;
@@ -195,24 +193,24 @@ export const generateAPICode = (components, apiConfig, useEnvironmentVariables, 
     const endpoints = components.filter(c => c.type === 'endpoint');
     
     let code = `// ${apiConfig.name}\n// ${apiConfig.description}\n\n`;
-    
+
     // Requerir dotenv si se usan variables de entorno O si hay base de datos
     if (useEnvironmentVariables || databaseConfig.enabled) {
         code += `require('dotenv').config();\n`;
     }
-    
+
     code += `const express = require('express');\nconst app = express();\n\n`;
     code += `app.use(express.json());\napp.use(express.urlencoded({ extended: true }));\n`;
-    
+
     // Agregar conector de base de datos
     code += generateDatabaseConnector(databaseConfig);
-    
+
     endpoints.forEach(endpoint => {
         const method = endpoint.method.toLowerCase();
         const fullPath = getFullPath(endpoint);
 
         code += `// ${endpoint.method} ${fullPath}\n`;
-        
+
         // Obtener los parámetros según el tipo
         let params = [];
         switch (endpoint.parameterType) {
@@ -229,7 +227,7 @@ export const generateAPICode = (components, apiConfig, useEnvironmentVariables, 
                 params = endpoint.headerParams || [];
                 break;
         }
-        
+
         if (endpoint.parameterType !== 'none' && params.length > 0) {
             code += `// Parámetros (${endpoint.parameterType}): ${params.join(', ')}\n`;
         }
@@ -270,12 +268,12 @@ export const generateAPICode = (components, apiConfig, useEnvironmentVariables, 
         }
 
         code += `  try {\n`;
-        
+
         // Agregar ejemplo de query a base de datos si está habilitado
         if (databaseConfig.enabled) {
             const { type } = databaseConfig;
             code += `    // Ejemplo de consulta a base de datos:\n`;
-            
+
             if (type === 'mysql') {
                 code += `    // const [rows] = await pool.query('SELECT * FROM tabla WHERE id = ?', [id]);\n`;
             } else if (type === 'oracle') {
@@ -292,10 +290,10 @@ export const generateAPICode = (components, apiConfig, useEnvironmentVariables, 
                 code += `    // const value = await redisClient.get('key');\n`;
                 code += `    // await redisClient.set('key', 'value');\n`;
             }
-            
+
             code += `\n`;
         }
-        
+
         // Construir respuesta de éxito
         const successResponse = endpoint.successResponse || { statusCode: 200, fields: [] };
         const successObj = {};
@@ -303,9 +301,9 @@ export const generateAPICode = (components, apiConfig, useEnvironmentVariables, 
             successObj[field.key] = field.value;
         });
         code += `    res.status(${successResponse.statusCode}).json(${JSON.stringify(successObj, null, 4).replace(/\n/g, '\n    ')});\n`;
-        
+
         code += `  } catch (error) {\n`;
-        
+
         // Construir respuesta de error
         const errorResponse = endpoint.errorResponse || { statusCode: 500, fields: [] };
         const errorObj = {};
@@ -313,7 +311,6 @@ export const generateAPICode = (components, apiConfig, useEnvironmentVariables, 
             errorObj[field.key] = field.value;
         });
         code += `    res.status(${errorResponse.statusCode}).json(${JSON.stringify(errorObj, null, 4).replace(/\n/g, '\n    ')});\n`;
-        
         code += `  }\n});\n\n`;
     });
 

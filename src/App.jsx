@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { generateEnvFile, generateAPICode } from './utils/codeGenerator';
 import Sidebar from './components/Sidebar';
 import TutorialModal from './components/TutorialModal';
 import CodeGenModal from './components/CodeGenModal';
@@ -616,108 +615,6 @@ export default function App() {
         setShowConfigSummary(true);
     };
 
-    const handleGenerateAndCopy = async () => {
-        const useEnv = tempUseEnv;
-        const useDb = tempUseDb;
-        const dbType = tempDbType;
-
-        setShowConfigSummary(false);
-
-        const code = generateAPICode(components, apiConfig, useEnv, { enabled: useDb, type: dbType }, getFullPath);
-        const envContent = generateEnvFile(useEnv, { enabled: useDb, type: dbType });
-
-        const endpointCount = components.filter(c => c.type === 'endpoint').length;
-
-        try {
-            await navigator.clipboard.writeText(code);
-
-            if (envContent) {
-                const blob = new Blob([envContent], { type: 'text/plain' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = '.env';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            }
-            
-            let successMessage = `
-                <p>El código de tu API ha sido copiado al portapapeles</p>
-                <div style="margin-top: 15px; padding: 10px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid #10b981;">
-                    <p style="margin: 5px 0; font-size: 14px;">${endpointCount} endpoints configurados</p>
-                    <p style="margin: 5px 0; font-size: 14px;">Servidor en puerto ${apiConfig.port}</p>
-                    <p style="margin: 5px 0; font-size: 14px;">Listo para pegar en server.js</p>
-                </div>
-            `;
-            
-            if (envContent) {
-                successMessage += `
-                    <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; border-left: 4px solid #f59e0b;">
-                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                            <svg style="width: 20px; height: 20px; color: #f59e0b; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            <h4 style="margin: 0; color: #92400e; font-size: 14px; font-weight: 600;">Archivo .env generado</h4>
-                        </div>
-                        <p style="margin: 0; color: #92400e; font-size: 13px;">
-                            El archivo <strong>.env</strong> ha sido descargado.<br/>
-                            Completa los valores de las variables antes de ejecutar tu API.
-                        </p>
-                    </div>
-                `;
-            }
-            
-            if (useDb) {
-                successMessage += `
-                    <div style="margin-top: 15px; padding: 12px; background: #dbeafe; border-radius: 6px; border-left: 4px solid #3b82f6;">
-                        <div style="display: flex; align-items: center;">
-                            <svg style="width: 20px; height: 20px; color: #3b82f6; margin-right: 8px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
-                            </svg>
-                            <p style="margin: 0; color: #1e40af; font-size: 13px;">
-                                Base de datos ${dbType.toUpperCase()} configurada<br/>
-                                Completa las credenciales en el archivo .env descargado
-                            </p>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            await Swal.fire({
-                icon: 'success',
-                title: 'Código Generado',
-                html: successMessage,
-                confirmButtonColor: '#10b981',
-                width: '650px',
-                backdrop: `
-                    rgba(0,0,0,0.6)
-                    left top
-                    no-repeat
-                `,
-                customClass: {
-                    container: 'blur-backdrop'
-                }
-            });
-        } catch (error) {
-            await Swal.fire({
-                icon: 'error',
-                title: 'Error al copiar',
-                text: 'No se pudo copiar al portapapeles. Intenta manualmente.',
-                confirmButtonColor: '#ef4444',
-                backdrop: `
-                    rgba(0,0,0,0.6)
-                    left top
-                    no-repeat
-                `,
-                customClass: {
-                    container: 'blur-backdrop'
-                }
-            });
-        }
-    };
-
     const handleClearAll = async () => {
         if (components.length === 0) {
             await Swal.fire({
@@ -896,13 +793,15 @@ export default function App() {
             />
 
             <ConfigSummaryModal
+                components={components}
                 showConfigSummary={showConfigSummary}
                 apiConfig={apiConfig}
                 tempUseEnv={tempUseEnv}
                 tempUseDb={tempUseDb}
+                tempDbType={tempDbType}
+                getFullPath={getFullPath}
                 setShowConfigSummary={setShowConfigSummary}
                 setShowCodeGenModal={setShowCodeGenModal}
-                handleGenerateAndCopy={handleGenerateAndCopy}
             />
         </>
     );
