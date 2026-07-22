@@ -1,6 +1,6 @@
 import { X, ArrowLeft, Download, AlertTriangle } from 'lucide-react';
 import Swal from 'sweetalert2';
-import { generateEnvFile, generateAPICode } from '../utils/codeGenerator';
+import { generateEnvFile, generateAPICode } from '../generator/codeGenerator';
 
 export default function ConfigSummaryModal({
     components,
@@ -33,7 +33,6 @@ export default function ConfigSummaryModal({
             */
 
             let successMessage = `
-                <p>El código de tu API ha sido copiado al portapapeles</p>
                 <div style="margin-top: 15px; padding: 10px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid #10b981;">
                     <p style="margin: 5px 0; font-size: 14px;">${endpointCount} endpoints configurados</p>
                     <p style="margin: 5px 0; font-size: 14px;">Servidor en puerto ${apiConfig.port}</p>
