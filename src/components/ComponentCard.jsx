@@ -317,10 +317,12 @@ export default function ComponentCard({
                 {component.parameterType !== 'none' && (
                     <div>
                         <label className="block text-xs font-medium text-gray-700 mb-2">
-                            {component.parameterType === 'route' ? 'Route Parameters' :
-                             component.parameterType === 'query' ? 'Query Parameters' :
-                             component.parameterType === 'body' ? 'Body Parameters' :
-                             'Headers'}
+                            {
+                                component.parameterType === 'route' ? 'Route Parameters' :
+                                component.parameterType === 'query' ? 'Query Parameters' :
+                                component.parameterType === 'body' ? 'Body Parameters' :
+                                'Headers'
+                            }
                         </label>
                         
                         {/* Input para agregar parámetros */}

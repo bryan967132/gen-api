@@ -416,6 +416,41 @@ export default function App() {
         return getFullRoutePath(parentRoute) + route.basePath;
     };
 
+    const getFullName = (component) => {
+        if (!component.parentRoute) return component.name;
+
+        const parentRoute = components.find(c => c.id === component.parentRoute);
+        if (!parentRoute) return component.name;
+
+        return getFullRouteName(parentRoute);
+    };
+
+    const getFullRouteName = (route) => {
+        if (!route.parentRoute) return route.name;
+
+        const parentRoute = components.find(c => c.id === route.parentRoute);
+        if (!parentRoute) return route.name;
+
+        return getFullRouteName(parentRoute) + ' - ' + route.name;
+    };
+
+    const getFullInfo = (component) => {
+        return { fullName: getFullName(component), fullPath: getFullPath(component) };
+    };
+
+    const containsEndpoint = (route) => {
+        const hasDirectEndpoints = components.some(
+            c => c.type === 'endpoint' && c.parentRoute === route.id
+        );
+        if (hasDirectEndpoints) return true;
+
+        const childRoutes = components.filter(
+            c => c.type === 'route' && c.parentRoute === route.id
+        );
+
+        return childRoutes.some(child => containsEndpoint(child));
+    }
+
     const validateDuplicates = () => {
         const errors = [];
 
@@ -464,10 +499,7 @@ export default function App() {
         });
 
         routes.forEach(route => {
-            const hasEndpoints = route.endpoints && route.endpoints.length > 0;
-            const hasSubRoutes = route.subRoutes && route.subRoutes.length > 0;
-            
-            if (!hasEndpoints && !hasSubRoutes) {
+            if (!containsEndpoint(route) && route.subRoutes && route.subRoutes.length == 0) {
                 const routePath = getFullRoutePath(route);
                 const routeName = route.name || routePath;
                 errors.push({
@@ -479,9 +511,7 @@ export default function App() {
 
         routes.forEach(route => {
             if (route.parentRoute) {
-                const hasEndpoints = route.endpoints && route.endpoints.length > 0;
-                
-                if (!hasEndpoints) {
+                if (!containsEndpoint(route)) {
                     const routePath = getFullRoutePath(route);
                     const routeName = route.name || routePath;
                     errors.push({
@@ -799,7 +829,7 @@ export default function App() {
                 tempUseEnv={tempUseEnv}
                 tempUseDb={tempUseDb}
                 tempDbType={tempDbType}
-                getFullPath={getFullPath}
+                getFullInfo={getFullInfo}
                 setShowConfigSummary={setShowConfigSummary}
                 setShowCodeGenModal={setShowCodeGenModal}
             />

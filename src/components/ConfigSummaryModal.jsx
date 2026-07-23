@@ -1,6 +1,6 @@
 import { X, ArrowLeft, Download, AlertTriangle } from 'lucide-react';
 import Swal from 'sweetalert2';
-import { generateEnvFile, generateAPICode } from '../generator/codeGenerator';
+import { generateAPICode } from '../generator/codeGenerator';
 
 export default function ConfigSummaryModal({
     components,
@@ -9,21 +9,20 @@ export default function ConfigSummaryModal({
     tempUseEnv,
     tempUseDb,
     tempDbType,
-    getFullPath,
+    getFullInfo,
     setShowConfigSummary,
     setShowCodeGenModal,
 }) {
     if (!showConfigSummary) return null;
 
-    const handleGenerateAndCopy = async () => {
+    const handleGenerateAndDownload = async () => {
         const useEnv = tempUseEnv;
         const useDb = tempUseDb;
         const dbType = tempDbType;
 
         setShowConfigSummary(false);
 
-        const code = generateAPICode(components, apiConfig, useEnv, { enabled: useDb, type: dbType }, getFullPath);
-        const envContent = generateEnvFile(useEnv, { enabled: useDb, type: dbType });
+        const code = generateAPICode(components, apiConfig, useEnv, { enabled: useDb, type: dbType }, getFullInfo);
 
         const endpointCount = components.filter(c => c.type === 'endpoint').length;
 
@@ -39,7 +38,7 @@ export default function ConfigSummaryModal({
                 </div>
             `;
 
-            if (envContent) {
+            if (code.envContent) {
                 successMessage += `
                     <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; border-left: 4px solid #f59e0b;">
                         <div style="display: flex; align-items: center; margin-bottom: 8px;">
@@ -170,11 +169,11 @@ export default function ConfigSummaryModal({
                             Cancelar
                         </button>
                         <button
-                            onClick={handleGenerateAndCopy}
+                            onClick={handleGenerateAndDownload}
                             className="flex items-center px-5 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
                         >
                             <Download size={18} className="mr-2" />
-                            Generar y Copiar
+                            Descargar Código
                         </button>
                     </div>
                 </div>

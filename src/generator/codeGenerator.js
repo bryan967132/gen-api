@@ -139,7 +139,7 @@ export const generateDatabaseConnector = (databaseConfig) => {
     return code;
 };
 
-export const generateEnvFile = (useEnvironmentVariables, databaseConfig) => {
+const generateEnvFile = (useEnvironmentVariables, databaseConfig) => {
     let envContent = '';
 
     // Puerto de la API si usa variables de entorno
@@ -204,12 +204,15 @@ export const generateEnvFile = (useEnvironmentVariables, databaseConfig) => {
  * @param {Function} getFullPath - Función que devuelve la ruta absoluta a un archivo o directorio según una ruta relativa.
  * @returns {string} Código generado de la API en formato de texto.
  */
-export const generateAPICode = (components, apiConfig, useEnvironmentVariables, databaseConfig, getFullPath) => {
+export const generateAPICode = (components, apiConfig, useEnvironmentVariables, databaseConfig, getFullInfo) => {
     console.log(components);
+    for(const component of components.filter(c => c.type === 'endpoint'))
+        console.log(getFullInfo(component));
+
     console.log(apiConfig);
     console.log(useEnvironmentVariables);
     console.log(databaseConfig);
-    console.log(getFullPath);
 
-    return '';
+
+    return { code: 'Código generado de la API', envContent: generateEnvFile(useEnvironmentVariables, databaseConfig) };
 };
