@@ -4,9 +4,9 @@ const structure = [
     { id: 3, name: 'controllers', type: 'folder', parent: 1 },
     { id: 4, name: 'routes', type: 'folder', parent: 1 },
     { id: 5, name: 'utils', type: 'folder', parent: 1 },
-]
+];
 
-export const generateDatabaseConnector = (databaseConfig) => {
+const generateDatabaseConnector = (databaseConfig) => {
     if (!databaseConfig.enabled) return '';
 
     const { type } = databaseConfig;
@@ -102,7 +102,6 @@ export const generateDatabaseConnector = (databaseConfig) => {
         code += `    .catch(err => {\n`;
         code += `        console.error('[ERROR] MSSQL Database connection failed:', err.message);\n`;
         code += `    });\n\n`;
-        
     } else if (type === 'mongodb') {
         code += `\n// MongoDB Database Connection\n`;
         code += `const { MongoClient } = require('mongodb');\n\n`;
@@ -118,7 +117,6 @@ export const generateDatabaseConnector = (databaseConfig) => {
         code += `    .catch(err => {\n`;
         code += `        console.error('[ERROR] MongoDB Database connection failed:', err.message);\n`;
         code += `    });\n\n`;
-        
     } else if (type === 'redis') {
         code += `\n// Redis Database Connection\n`;
         code += `const redis = require('redis');\n\n`;
@@ -194,6 +192,17 @@ const generateEnvFile = (useEnvironmentVariables, databaseConfig) => {
     return envContent;
 };
 
+const getEndpointsDeep = (components, routeId) => {
+    const directEndpoints = components.filter(
+        (c) => c.type === 'endpoint' && c.parentRoute === routeId
+    );
+    const childRoutes = components.filter((c) => c.type === 'route' && c.parentRoute === routeId);
+
+    const nestedEndpoints = childRoutes.flatMap((child) => getEndpointsDeep(components, child.id));
+
+    return [...directEndpoints, ...nestedEndpoints];
+};
+
 /**
  * Genera el código base de una API según los componentes, configuración y opciones proporcionadas.
  *
@@ -204,15 +213,28 @@ const generateEnvFile = (useEnvironmentVariables, databaseConfig) => {
  * @param {Function} getFullPath - Función que devuelve la ruta absoluta a un archivo o directorio según una ruta relativa.
  * @returns {string} Código generado de la API en formato de texto.
  */
-export const generateAPICode = (components, apiConfig, useEnvironmentVariables, databaseConfig, getFullInfo) => {
-    console.log(components);
-    for(const component of components.filter(c => c.type === 'endpoint'))
-        console.log(getFullInfo(component));
+export const generateAPICode = (
+    components,
+    apiConfig,
+    useEnvironmentVariables,
+    databaseConfig,
+    getFullInfo
+) => {
+    const endpointGroups = components
+        .filter((c) => c.type === 'route' && c.level === 0)
+        .map((route) => ({ endpoints: getEndpointsDeep(components, route.id) }));
 
-    console.log(apiConfig);
-    console.log(useEnvironmentVariables);
-    console.log(databaseConfig);
+    const rootEndpointGroup = {
+        endpoints: components.filter((c) => c.type === 'endpoint' && c.level === 0),
+    };
 
+    for (const group of [...endpointGroups, rootEndpointGroup]) {
+        console.log(group.id);
+        console.log(group.endpoints);
+    }
 
-    return { code: 'Código generado de la API', envContent: generateEnvFile(useEnvironmentVariables, databaseConfig) };
+    return {
+        code: 'Código generado de la API',
+        envContent: generateEnvFile(useEnvironmentVariables, databaseConfig),
+    };
 };

@@ -106,8 +106,8 @@ export default function ConfigSummaryModal({
     };
 
     return (
-        <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4" 
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
             style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
             onClick={(e) => {
                 if (e.target === e.currentTarget) {
@@ -160,7 +160,7 @@ export default function ConfigSummaryModal({
                         <ArrowLeft size={18} className="mr-1" />
                         Volver a Configuración
                     </button>
-                    
+
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setShowConfigSummary(false)}

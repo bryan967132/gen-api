@@ -62,9 +62,7 @@ export const downloadMultipleFiles = (files) => {
  * @param {string} dbCode - Código del conector de base de datos (opcional)
  */
 export const downloadProjectFiles = (serverCode, envContent = null, dbCode = null) => {
-    const files = [
-        { filename: 'server.js', content: serverCode }
-    ];
+    const files = [{ filename: 'server.js', content: serverCode }];
 
     if (envContent) {
         files.push({ filename: '.env', content: envContent });
@@ -98,7 +96,7 @@ export const copyToClipboard = async (text) => {
  */
 export const downloadReadme = (config) => {
     const { apiName, port, useDb, dbType } = config;
-    
+
     const dependencies = ['express'];
     if (config.useEnv) dependencies.push('dotenv');
     if (useDb) {
@@ -145,17 +143,25 @@ node server.js
 
 El servidor se ejecutará en el puerto ${port}.
 
-${config.useEnv ? `### Variables de Entorno
+${
+    config.useEnv
+        ? `### Variables de Entorno
 
 Configurar las siguientes variables en el archivo \`.env\`:
 - PORT=${port}
-${useDb ? `- DB_HOST=localhost
+${
+    useDb
+        ? `- DB_HOST=localhost
 - DB_USER=tu_usuario
 - DB_PASSWORD=tu_password
 - DB_NAME=tu_base_de_datos
 ${dbType === 'mysql' || dbType === 'postgresql' || dbType === 'mssql' ? '- DB_PORT=' + (dbType === 'postgresql' ? '5432' : dbType === 'mssql' ? '1433' : '3306') : ''}
-` : ''}
-` : ''}
+`
+        : ''
+}
+`
+        : ''
+}
 
 ## Endpoints
 

@@ -106,7 +106,7 @@ export default function App() {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = e.clientX;
         const y = e.clientY;
-        
+
         if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
             setIsDragOver(null);
         }
@@ -141,17 +141,17 @@ export default function App() {
                         };
                     }
                     if (comp.id === movedId) {
-                        return { 
-                            ...comp, 
-                            parentRoute: null, 
-                            level: 0 
+                        return {
+                            ...comp,
+                            parentRoute: null,
+                            level: 0
                         };
                     }
                     return comp;
                 });
                 return newState;
             });
-            
+
             setDraggedComponent(null);
             return;
         }
@@ -198,17 +198,17 @@ export default function App() {
         e.preventDefault();
         e.stopPropagation();
         setIsDragOver(null);
-        
+
         const componentId = e.dataTransfer.getData('componentId');
         const componentType = e.dataTransfer.getData('componentType');
 
         if (componentId) {
             const movedId = parseFloat(componentId);
-            
+
             setComponents(prev => {
                 const movedComponent = prev.find(c => c.id === movedId);
                 const targetRoute = prev.find(c => c.id === routeId);
-                
+
                 if (!movedComponent || !targetRoute || movedId === routeId) return prev;
 
                 if (movedComponent.type === 'route') {
@@ -245,23 +245,23 @@ export default function App() {
                     if (comp.id === routeId) {
                         if (movedComponent.type === 'endpoint') {
                             const alreadyHas = comp.endpoints.includes(movedId);
-                            return { 
-                                ...comp, 
+                            return {
+                                ...comp,
                                 endpoints: alreadyHas ? comp.endpoints : [...comp.endpoints, movedId]
                             };
                         } else {
                             const alreadyHas = comp.subRoutes.includes(movedId);
-                            return { 
-                                ...comp, 
+                            return {
+                                ...comp,
                                 subRoutes: alreadyHas ? comp.subRoutes : [...comp.subRoutes, movedId]
                             };
                         }
                     }
                     if (comp.id === movedId) {
-                        return { 
-                            ...comp, 
-                            parentRoute: routeId, 
-                            level: targetRoute.level + 1 
+                        return {
+                            ...comp,
+                            parentRoute: routeId,
+                            level: targetRoute.level + 1
                         };
                     }
                     return comp;
@@ -306,8 +306,8 @@ export default function App() {
                 };
 
                 return [
-                    ...prev.map(comp => 
-                        comp.id === routeId 
+                    ...prev.map(comp =>
+                        comp.id === routeId
                         ? { ...comp, endpoints: [...comp.endpoints, newEndpoint.id] }
                         : comp
                     ),
@@ -327,15 +327,15 @@ export default function App() {
                 };
 
                 return [
-                    ...prev.map(comp => 
-                        comp.id === routeId 
+                    ...prev.map(comp =>
+                        comp.id === routeId
                         ? { ...comp, subRoutes: [...comp.subRoutes, newSubRoute.id] }
                         : comp
                     ),
                     newSubRoute
                 ];
             }
-            
+
             return prev;
         });
     };
@@ -356,11 +356,11 @@ export default function App() {
             const getAllDescendants = (routeId) => {
                 const route = components.find(c => c.id === routeId);
                 let descendants = [];
-                
+
                 if (route.endpoints) {
                     descendants.push(...route.endpoints);
                 }
-                
+
                 if (route.subRoutes) {
                     route.subRoutes.forEach(subRouteId => {
                         descendants.push(subRouteId);
@@ -374,20 +374,20 @@ export default function App() {
             const descendantsToDelete = getAllDescendants(id);
 
             if (component.parentRoute) {
-                setComponents(prev => prev.map(comp => 
-                    comp.id === component.parentRoute 
+                setComponents(prev => prev.map(comp =>
+                    comp.id === component.parentRoute
                     ? { ...comp, subRoutes: comp.subRoutes.filter(sId => sId !== id) }
                     : comp
                 ));
             }
-            
-            setComponents(prev => prev.filter(comp => 
+
+            setComponents(prev => prev.filter(comp =>
                 comp.id !== id && !descendantsToDelete.includes(comp.id)
             ));
         } else {
             if (component.parentRoute) {
-                setComponents(prev => prev.map(comp => 
-                    comp.id === component.parentRoute 
+                setComponents(prev => prev.map(comp =>
+                    comp.id === component.parentRoute
                     ? { ...comp, endpoints: comp.endpoints.filter(epId => epId !== id) }
                     : comp
                 ));
@@ -467,7 +467,7 @@ export default function App() {
 
         Object.entries(routeGroups).forEach(([key, group]) => {
             if (group.length > 1) {
-                const parentName = group[0].parentRoute 
+                const parentName = group[0].parentRoute
                     ? routes.find(r => r.id === group[0].parentRoute)?.name || 'Ruta padre'
                     : 'Nivel raíz';
                 errors.push({
@@ -790,7 +790,7 @@ export default function App() {
                         ) : (
                             <div className="max-w-6xl mx-auto">
                                 {components.map(renderComponent)}
-                                
+
                                 {isDragOver === 'main' && (
                                     <div className="border-2 border-dashed border-blue-400 bg-blue-50 rounded-lg p-8 text-center text-blue-600 mt-4">
                                         <p className="text-lg font-medium">Suelta aquí</p>
