@@ -171,10 +171,7 @@ export default function App() {
                 method: 'GET',
                 path: '/example',
                 parameterType: 'none',
-                routeParams: [],
-                queryParams: [],
-                bodyParams: [],
-                headerParams: [],
+                params: [],
                 successResponse: {
                     statusCode: 200,
                     fields: [
@@ -286,10 +283,7 @@ export default function App() {
                     method: 'GET',
                     path: '/example',
                     parameterType: 'none',
-                    routeParams: [],
-                    queryParams: [],
-                    bodyParams: [],
-                    headerParams: [],
+                    params: [],
                     successResponse: {
                         statusCode: 200,
                         fields: [
@@ -398,13 +392,18 @@ export default function App() {
     };
 
     const getFullPath = (component) => {
-        if (!component.parentRoute) return component.path;
+        const routeParams =
+            component.parameterType === 'route' ? component.params.map(param => `/:${param}`).join('') : '';
+
+        if (!component.parentRoute) {
+            return component.path + routeParams;
+        }
 
         const parentRoute = components.find(c => c.id === component.parentRoute);
-        if (!parentRoute) return component.path;
+        if (!parentRoute) return component.path + routeParams;
 
         const parentPath = getFullRoutePath(parentRoute);
-        return parentPath + component.path;
+        return parentPath + component.path + routeParams;
     };
 
     const getFullRoutePath = (route) => {
@@ -434,8 +433,9 @@ export default function App() {
         return getFullRouteName(parentRoute) + ' - ' + route.name;
     };
 
-    const getFullInfo = (component) => {
-        return { fullName: getFullName(component), fullPath: getFullPath(component) };
+    const getRelativePath = (component) => {
+        const fullPath = getFullPath(component);
+        return component.parentRoute ? fullPath.replace(/^\/[^/]+/, '') : fullPath;
     };
 
     const containsEndpoint = (route) => {
@@ -829,7 +829,7 @@ export default function App() {
                 tempUseEnv={tempUseEnv}
                 tempUseDb={tempUseDb}
                 tempDbType={tempDbType}
-                getFullInfo={getFullInfo}
+                getRelativePath={getRelativePath}
                 setShowConfigSummary={setShowConfigSummary}
                 setShowCodeGenModal={setShowCodeGenModal}
             />

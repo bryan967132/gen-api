@@ -9,7 +9,7 @@ export default function ConfigSummaryModal({
     tempUseEnv,
     tempUseDb,
     tempDbType,
-    getFullInfo,
+    getRelativePath,
     setShowConfigSummary,
     setShowCodeGenModal,
 }) {
@@ -22,8 +22,22 @@ export default function ConfigSummaryModal({
 
         setShowConfigSummary(false);
 
-        const code = generateAPICode(components, apiConfig, useEnv, { enabled: useDb, type: dbType }, getFullInfo);
+        console.log(components);
 
+        const { envContent, groups, index } = generateAPICode(components, apiConfig, useEnv, { enabled: useDb, type: dbType }, getRelativePath);
+        // console.log(components);
+        groups.forEach(({ groupName, controller, route }) => {
+            console.log(`\u001B[96m========== GROUP NAME: ${groupName} ==========\u001B[0m`);
+            console.log(`\u001B[32m----- controllers/${groupName}.controller.js -----\u001B[0m`);
+            console.log(controller);
+            console.log();
+            console.log(`\u001B[32m----- routes/${groupName}.route.js -----\u001B[0m`);
+            console.log(route);
+            console.log();
+        });
+
+        console.log('\u001B[96m========== index.js ==========\u001B[0m');
+        console.log(index);
         const endpointCount = components.filter(c => c.type === 'endpoint').length;
 
         try {
@@ -38,7 +52,7 @@ export default function ConfigSummaryModal({
                 </div>
             `;
 
-            if (code.envContent) {
+            if (envContent) {
                 successMessage += `
                     <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; border-left: 4px solid #f59e0b;">
                         <div style="display: flex; align-items: center; margin-bottom: 8px;">

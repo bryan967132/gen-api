@@ -48,45 +48,27 @@ export default function ComponentCard({
         updateComponent(id, { expanded: !components.find(c => c.id === id).expanded });
     };
 
-    const addParameter = (componentId, paramType, paramName) => {
+    const addParameter = (componentId, paramName) => {
         if (!paramName.trim()) return;
 
         const component = components.find(c => c.id === componentId);
         if (!component) return;
 
-        const paramKey = {
-            'route': 'routeParams',
-            'query': 'queryParams',
-            'body': 'bodyParams',
-            'headers': 'headerParams'
-        }[paramType];
-
-        if (!paramKey) return;
-
-        if (component[paramKey].includes(paramName.trim())) {
+        if (component.params.includes(paramName.trim())) {
             return;
         }
 
         updateComponent(componentId, {
-            [paramKey]: [...component[paramKey], paramName.trim()]
+            params: [...component.params, paramName.trim()]
         });
     };
 
-    const removeParameter = (componentId, paramType, paramName) => {
+    const removeParameter = (componentId, paramName) => {
         const component = components.find(c => c.id === componentId);
         if (!component) return;
 
-        const paramKey = {
-            'route': 'routeParams',
-            'query': 'queryParams',
-            'body': 'bodyParams',
-            'headers': 'headerParams'
-        }[paramType];
-
-        if (!paramKey) return;
-
         updateComponent(componentId, {
-            [paramKey]: component[paramKey].filter(p => p !== paramName)
+            params: component.params.filter(p => p !== paramName)
         });
     };
 
@@ -332,7 +314,7 @@ export default function ComponentCard({
                                 onKeyPress={(e) => {
                                     if (e.key === 'Enter') {
                                         e.preventDefault();
-                                        addParameter(component.id, component.parameterType, e.target.value);
+                                        addParameter(component.id, e.target.value);
                                         e.target.value = '';
                                     }
                                 }}
@@ -351,14 +333,7 @@ export default function ComponentCard({
                         {/* Etiquetas de parámetros */}
                         <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border border-gray-200 rounded-md bg-gray-50">
                             {(() => {
-                                const paramKey = {
-                                    'route': 'routeParams',
-                                    'query': 'queryParams',
-                                    'body': 'bodyParams',
-                                    'headers': 'headerParams'
-                                }[component.parameterType];
-
-                                const params = component[paramKey] || [];
+                                const params = component.params || [];
 
                                 if (params.length === 0) {
                                     return (
@@ -378,7 +353,7 @@ export default function ComponentCard({
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                removeParameter(component.id, component.parameterType, param);
+                                                removeParameter(component.id, param);
                                             }}
                                             className="hover:bg-green-200 rounded-full p-0.5 transition-colors"
                                             title="Eliminar parámetro"
