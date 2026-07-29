@@ -8,17 +8,19 @@ const getUseRoutes = (groups, jump) =>
     groups.map(({ groupName, path }) => `app.use('${path}', ${groupName});`).join('\n') +
     jump;
 
-export const generateIndex = groups => {
+export const generateIndex = (useEnvVar, port, groups) => {
     return `import express from 'express';
 import cors from 'cors';
-${getImportRoutes(groups)}
+${getImportRoutes(groups)}${
+        useEnvVar ? `import { config } from 'dotenv';\n\n` : ''
+    }${useEnvVar ? `config({ path: './.env' });` : ''}
 const app = express();
 
 app.use(cors())
 app.use(express.json());
 ${getUseRoutes(groups)}
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(\`Servidor ejecutándose en http://localhost:\${PORT}\`);
+const API_PORT = ${useEnvVar ? 'process.env.API_PORT || 3000' : port};
+app.listen(API_PORT, () => {
+    console.log(\`Servidor ejecutándose en http://localhost:\${API_PORT}\`);
 });`;
 };

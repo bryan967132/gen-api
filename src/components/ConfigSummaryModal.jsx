@@ -24,10 +24,10 @@ export default function ConfigSummaryModal({
 
         console.log(components);
 
-        const { envContent, groups, index } = generateAPICode(components, apiConfig, useEnv, { enabled: useDb, type: dbType }, getRelativePath);
+        const { readme, envContent, packageJSON, dbConfig, groups, index } = generateAPICode(components, apiConfig, useEnv, { enabled: useDb, type: dbType }, getRelativePath);
         // console.log(components);
         groups.forEach(({ groupName, controller, route }) => {
-            console.log(`\u001B[96m========== GROUP NAME: ${groupName} ==========\u001B[0m`);
+            console.log('\u001B[96m========== GROUP NAME:', groupName, '==========\u001B[0m');
             console.log(`\u001B[32m----- controllers/${groupName}.controller.js -----\u001B[0m`);
             console.log(controller);
             console.log();
@@ -38,6 +38,24 @@ export default function ConfigSummaryModal({
 
         console.log('\u001B[96m========== index.js ==========\u001B[0m');
         console.log(index);
+        console.log();
+
+        console.log('\u001B[96m========== configurations/db.js ==========\u001B[0m');
+        console.log(dbConfig);
+        console.log();
+
+        console.log('\u001B[96m========== package.json ==========\u001B[0m');
+        console.log(packageJSON);
+        console.log();
+
+        console.log('\u001B[96m========== .env ==========\u001B[0m');
+        console.log(envContent);
+        console.log();
+
+        console.log('\u001B[96m========== README.md ==========\u001B[0m');
+        console.log(readme);
+        console.log();
+
         const endpointCount = components.filter(c => c.type === 'endpoint').length;
 
         try {

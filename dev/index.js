@@ -484,17 +484,17 @@ const components = [
     },
 ];
 
-const { envContent, groups, index } = generateAPICode(
+const { readme, envContent, packageJSON, dbConfig, groups, index } = generateAPICode(
     components,
     {
         name: 'Mi API',
-        port: 3000,
+        port: 4000,
         description: 'API generada con GenAPI',
     },
     true,
     {
-        enabled: false,
-        type: 'mysql',
+        enabled: true,
+        type: 'mssql',
     },
     getRelativePath
 );
@@ -512,3 +512,20 @@ groups.forEach(({ groupName, controller, route }) => {
 
 console.log('\u001B[96m========== index.js ==========\u001B[0m');
 console.log(index);
+console.log();
+
+console.log('\u001B[96m========== configurations/db.js ==========\u001B[0m');
+console.log(dbConfig);
+console.log();
+
+console.log('\u001B[96m========== package.json ==========\u001B[0m');
+console.log(packageJSON);
+console.log();
+
+console.log('\u001B[96m========== .env ==========\u001B[0m');
+console.log(envContent);
+console.log();
+
+console.log('\u001B[96m========== README.md ==========\u001B[0m');
+console.log(readme);
+console.log();
