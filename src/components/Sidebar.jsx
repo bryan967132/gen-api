@@ -13,17 +13,17 @@ export default function Sidebar({
     independentEndpointCount
 }) {
     const componentTypes = [
-        { 
-            type: 'route', 
-            icon: Route, 
-            name: 'Ruta', 
+        {
+            type: 'route',
+            icon: Route,
+            name: 'Ruta',
             color: 'bg-blue-500',
             description: 'Contenedor para endpoints y subrutas'
         },
-        { 
-            type: 'endpoint', 
-            icon: Zap, 
-            name: 'Endpoint', 
+        {
+            type: 'endpoint',
+            icon: Zap,
+            name: 'Endpoint',
             color: 'bg-green-500',
             description: 'Endpoint HTTP individual'
         }

@@ -13,7 +13,7 @@ export default function ComponentCard({
     handleComponentClick,
     handleComponentDragStart,
     handleDragEnd,
-    handleDragOver, 
+    handleDragOver,
     handleRouteDragEnter,
     handleRouteDragLeave,
     handleRouteDrop,
@@ -48,45 +48,27 @@ export default function ComponentCard({
         updateComponent(id, { expanded: !components.find(c => c.id === id).expanded });
     };
 
-    const addParameter = (componentId, paramType, paramName) => {
+    const addParameter = (componentId, paramName) => {
         if (!paramName.trim()) return;
 
         const component = components.find(c => c.id === componentId);
         if (!component) return;
 
-        const paramKey = {
-            'route': 'routeParams',
-            'query': 'queryParams',
-            'body': 'bodyParams',
-            'headers': 'headerParams'
-        }[paramType];
-
-        if (!paramKey) return;
-
-        if (component[paramKey].includes(paramName.trim())) {
+        if (component.params.includes(paramName.trim())) {
             return;
         }
-        
+
         updateComponent(componentId, {
-            [paramKey]: [...component[paramKey], paramName.trim()]
+            params: [...component.params, paramName.trim()]
         });
     };
 
-    const removeParameter = (componentId, paramType, paramName) => {
+    const removeParameter = (componentId, paramName) => {
         const component = components.find(c => c.id === componentId);
         if (!component) return;
-        
-        const paramKey = {
-            'route': 'routeParams',
-            'query': 'queryParams',
-            'body': 'bodyParams',
-            'headers': 'headerParams'
-        }[paramType];
-        
-        if (!paramKey) return;
-        
+
         updateComponent(componentId, {
-            [paramKey]: component[paramKey].filter(p => p !== paramName)
+            params: component.params.filter(p => p !== paramName)
         });
     };
 
@@ -136,7 +118,7 @@ export default function ComponentCard({
         updateComponent(componentId, {
             [responseKey]: {
                 ...currentResponse,
-                fields: currentResponse.fields.map(f => 
+                fields: currentResponse.fields.map(f =>
                     f.key === fieldKey ? { ...f, value: newValue } : f
                 )
             }
@@ -176,7 +158,7 @@ export default function ComponentCard({
                         isSelected ? 'border-blue-500 shadow-blue-200' : 'border-gray-200'
                     } ${
                         isDragOver === component.id
-                        ? 'border-purple-400 shadow-purple-200 bg-purple-50' 
+                        ? 'border-purple-400 shadow-purple-200 bg-purple-50'
                         : ''
                     } ${
                         isDragging ? 'opacity-50' : 'cursor-move'
@@ -230,7 +212,7 @@ export default function ComponentCard({
                             )}
                         </div>
                     </div>
-                    
+
                     {component.expanded && (
                         <div className="p-4 space-y-4">
                             <div>
@@ -245,7 +227,7 @@ export default function ComponentCard({
                                     spellCheck={false}
                                 />
                             </div>
-                            
+
                             {(nestedEndpoints.length === 0 && nestedRoutes.length === 0) ? (
                                 <div className={`text-center py-8 border-2 border-dashed rounded-lg transition-all ${
                                     isDragOver === component.id
@@ -317,12 +299,14 @@ export default function ComponentCard({
                 {component.parameterType !== 'none' && (
                     <div>
                         <label className="block text-xs font-medium text-gray-700 mb-2">
-                            {component.parameterType === 'route' ? 'Route Parameters' :
-                             component.parameterType === 'query' ? 'Query Parameters' :
-                             component.parameterType === 'body' ? 'Body Parameters' :
-                             'Headers'}
+                            {
+                                component.parameterType === 'route' ? 'Route Parameters' :
+                                component.parameterType === 'query' ? 'Query Parameters' :
+                                component.parameterType === 'body' ? 'Body Parameters' :
+                                'Headers'
+                            }
                         </label>
-                        
+
                         {/* Input para agregar parámetros */}
                         <div className="mb-2">
                             <input
@@ -330,13 +314,13 @@ export default function ComponentCard({
                                 onKeyPress={(e) => {
                                     if (e.key === 'Enter') {
                                         e.preventDefault();
-                                        addParameter(component.id, component.parameterType, e.target.value);
+                                        addParameter(component.id, e.target.value);
                                         e.target.value = '';
                                     }
                                 }}
                                 className="w-full px-2 py-2 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
                                 placeholder={`Presiona Enter para agregar - Ej: ${
-                                    component.parameterType === 'route' ? 'id, userId' : 
+                                    component.parameterType === 'route' ? 'id, userId' :
                                     component.parameterType === 'query' ? 'page, limit, search' :
                                     component.parameterType === 'body' ? 'name, email, password' :
                                     'authorization, content-type'
@@ -345,19 +329,12 @@ export default function ComponentCard({
                                 spellCheck={false}
                             />
                         </div>
-                        
+
                         {/* Etiquetas de parámetros */}
                         <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border border-gray-200 rounded-md bg-gray-50">
                             {(() => {
-                                const paramKey = {
-                                    'route': 'routeParams',
-                                    'query': 'queryParams',
-                                    'body': 'bodyParams',
-                                    'headers': 'headerParams'
-                                }[component.parameterType];
-                                
-                                const params = component[paramKey] || [];
-                                
+                                const params = component.params || [];
+
                                 if (params.length === 0) {
                                     return (
                                         <span className="text-xs text-gray-400 italic">
@@ -365,7 +342,7 @@ export default function ComponentCard({
                                         </span>
                                     );
                                 }
-                                
+
                                 return params.map((param, index) => (
                                     <span
                                         key={index}
@@ -376,7 +353,7 @@ export default function ComponentCard({
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                removeParameter(component.id, component.parameterType, param);
+                                                removeParameter(component.id, param);
                                             }}
                                             className="hover:bg-green-200 rounded-full p-0.5 transition-colors"
                                             title="Eliminar parámetro"
@@ -400,7 +377,7 @@ export default function ComponentCard({
         const isDragging = draggedComponent?.id === component.id;
         const indentLevel = component.level || 0;
         const marginLeft = isNested ? `${20 + (indentLevel * 16)}px` : '0px';
-        
+
         return (
             <div
                 key={component.id}
@@ -433,8 +410,8 @@ export default function ComponentCard({
                             }}
                         >
                             {httpMethods.map((method) => (
-                                <option 
-                                    key={method} 
+                                <option
+                                    key={method}
                                     value={method}
                                     style={{
                                         backgroundColor: 'white',
@@ -598,7 +575,7 @@ export default function ComponentCard({
                             <label className="block text-xs font-semibold text-red-800 mb-2 flex items-center">
                                 Respuesta de Error
                             </label>
-                            
+
                             {/* Código de Estado */}
                             <div className="mb-3">
                                 <label className="block text-xs font-medium text-gray-700 mb-1">

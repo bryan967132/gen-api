@@ -37,7 +37,7 @@ export default function TutorialModal({
                             En la barra lateral izquierda encontrarás los campos para configurar:
                         </p>
                     </div>
-                    
+
                     <div className="space-y-4 pl-4">
                         <div>
                             <div className="flex items-center mb-1">
@@ -46,7 +46,7 @@ export default function TutorialModal({
                             </div>
                             <p className="text-gray-600 text-xs ml-6">Identifica tu proyecto (ej: "API de E-commerce")</p>
                         </div>
-                        
+
                         <div>
                             <div className="flex items-center mb-1">
                                 <CheckCircle size={16} className="text-green-500 mr-2" />
@@ -54,7 +54,7 @@ export default function TutorialModal({
                             </div>
                             <p className="text-gray-600 text-xs ml-6">Puerto donde correrá el servidor (ej: 3000, 8080)</p>
                         </div>
-                        
+
                         <div>
                             <div className="flex items-center mb-1">
                                 <CheckCircle size={16} className="text-green-500 mr-2" />
@@ -73,7 +73,7 @@ export default function TutorialModal({
                     <p className="text-gray-600 mb-6 text-sm">
                         GenAPI trabaja con dos tipos de componentes principales:
                     </p>
-                    
+
                     <div className="bg-blue-500 text-white p-4 rounded-lg mb-4">
                         <div className="flex items-center mb-2">
                             <Route size={24} className="mr-3" />
@@ -86,7 +86,7 @@ export default function TutorialModal({
                             Ejemplo: /api/users, /api/products
                         </div>
                     </div>
-                    
+
                     <div className="bg-green-500 text-white p-4 rounded-lg">
                         <div className="flex items-center mb-2">
                             <Zap size={24} className="mr-3" />
@@ -115,7 +115,7 @@ export default function TutorialModal({
                             Todo en GenAPI funciona mediante arrastrar y soltar. ¡Es muy fácil!
                         </p>
                     </div>
-                    
+
                     <div className="space-y-4">
                         <div>
                             <div className="flex items-center mb-2">
@@ -126,7 +126,7 @@ export default function TutorialModal({
                                 Arrastra una <strong>Ruta</strong> o <strong>Endpoint</strong> desde la barra lateral hacia el área principal.
                             </p>
                         </div>
-                        
+
                         <div>
                             <div className="flex items-center mb-2">
                                 <div className="bg-blue-500 text-white w-7 h-7 rounded-full flex items-center justify-center mr-3 font-bold text-sm">2</div>
@@ -136,7 +136,7 @@ export default function TutorialModal({
                                 Arrastra <strong>endpoints</strong> o <strong>subrutas</strong> DENTRO de una ruta existente para organizarlos.
                             </p>
                         </div>
-                        
+
                         <div>
                             <div className="flex items-center mb-2">
                                 <div className="bg-blue-500 text-white w-7 h-7 rounded-full flex items-center justify-center mr-3 font-bold text-sm">3</div>
@@ -157,7 +157,7 @@ export default function TutorialModal({
                     <p className="text-gray-600 mb-4 text-sm">
                         Después de crear un endpoint, haz clic en él para configurarlo:
                     </p>
-                    
+
                     <div className="space-y-3">
                         <div className="bg-gray-50 p-4 rounded-lg">
                             <div className="flex items-center mb-2">
@@ -168,7 +168,7 @@ export default function TutorialModal({
                                 GET, POST, PUT, DELETE, PATCH
                             </p>
                         </div>
-                        
+
                         <div className="bg-gray-50 p-4 rounded-lg">
                             <div className="flex items-center mb-2">
                                 <Globe size={18} className="text-blue-500 mr-2" />
@@ -178,7 +178,7 @@ export default function TutorialModal({
                                 Ruta específica (ej: /users/:id, /login)
                             </p>
                         </div>
-                        
+
                         <div className="bg-gray-50 p-4 rounded-lg">
                             <div className="flex items-center mb-2">
                                 <FileText size={18} className="text-blue-500 mr-2" />
@@ -188,7 +188,7 @@ export default function TutorialModal({
                                 Route Params, Query Params, Body, Headers
                             </p>
                         </div>
-                        
+
                         <div className="bg-gray-50 p-4 rounded-lg">
                             <div className="flex items-center mb-2">
                                 <Code size={18} className="text-blue-500 mr-2" />
@@ -209,14 +209,14 @@ export default function TutorialModal({
                     <p className="text-gray-600 mb-6 text-sm">
                         Cuando termines de diseñar tu API, genera el código:
                     </p>
-                    
+
                     <div className="bg-purple-500 text-white p-6 rounded-lg mb-4 text-center">
                         <Download size={48} className="mx-auto mb-3" />
                         <p className="text-sm">
                             Haz clic en <strong>"Generar Código"</strong> en la barra lateral
                         </p>
                     </div>
-                    
+
                     <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-3">
                         <div className="flex items-start">
                             <CheckCircle size={20} className="text-green-600 mr-3 flex-shrink-0 mt-0.5" />
@@ -228,7 +228,7 @@ export default function TutorialModal({
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
                         <div className="flex items-start">
                             <Info size={20} className="text-yellow-600 mr-3 flex-shrink-0 mt-0.5" />
@@ -246,8 +246,8 @@ export default function TutorialModal({
     ];
 
     return (
-        <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4" 
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
             style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
             onClick={(e) => {
                 if (e.target === e.currentTarget) {
@@ -271,8 +271,8 @@ export default function TutorialModal({
                             <div
                                 key={index}
                                 className={`h-2 rounded-full transition-all duration-300 ${
-                                    index === tutorialStep 
-                                        ? 'w-8 bg-purple-500' 
+                                    index === tutorialStep
+                                        ? 'w-8 bg-purple-500'
                                         : 'w-2 bg-gray-300'
                                 }`}
                             />
@@ -294,7 +294,7 @@ export default function TutorialModal({
                     >
                         Salir
                     </button>
-                    
+
                     <div className="flex items-center gap-2">
                         {tutorialStep > 0 && (
                             <button
@@ -305,7 +305,7 @@ export default function TutorialModal({
                                 Anterior
                             </button>
                         )}
-                        
+
                         <button
                             onClick={nextTutorialStep}
                             className={`flex items-center px-5 py-2 text-white rounded-lg transition-colors text-sm font-medium ${

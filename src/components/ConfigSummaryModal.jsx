@@ -1,6 +1,6 @@
 import { X, ArrowLeft, Download, AlertTriangle } from 'lucide-react';
 import Swal from 'sweetalert2';
-import { generateEnvFile, generateAPICode } from '../utils/codeGenerator';
+import { generateAPICode } from '../generator/codeGenerator';
 
 export default function ConfigSummaryModal({
     components,
@@ -9,21 +9,52 @@ export default function ConfigSummaryModal({
     tempUseEnv,
     tempUseDb,
     tempDbType,
-    getFullPath,
+    getRelativePath,
     setShowConfigSummary,
     setShowCodeGenModal,
 }) {
     if (!showConfigSummary) return null;
 
-    const handleGenerateAndCopy = async () => {
+    const handleGenerateAndDownload = async () => {
         const useEnv = tempUseEnv;
         const useDb = tempUseDb;
         const dbType = tempDbType;
 
         setShowConfigSummary(false);
 
-        const code = generateAPICode(components, apiConfig, useEnv, { enabled: useDb, type: dbType }, getFullPath);
-        const envContent = generateEnvFile(useEnv, { enabled: useDb, type: dbType });
+        console.log(components);
+
+        const { readme, envContent, packageJSON, dbConfig, groups, index } = generateAPICode(components, apiConfig, useEnv, { enabled: useDb, type: dbType }, getRelativePath);
+        // console.log(components);
+        groups.forEach(({ groupName, controller, route }) => {
+            console.log('\u001B[96m========== GROUP NAME:', groupName, '==========\u001B[0m');
+            console.log(`\u001B[32m----- ./src/controllers/${groupName}.controller.js -----\u001B[0m`);
+            console.log(controller);
+            console.log();
+            console.log(`\u001B[32m----- ./src/routes/${groupName}.routes.js -----\u001B[0m`);
+            console.log(route);
+            console.log();
+        });
+
+        console.log('\u001B[96m========== index.js ==========\u001B[0m');
+        console.log(index);
+        console.log();
+
+        console.log('\u001B[96m========== ./src/configurations/database.config.js ==========\u001B[0m');
+        console.log(dbConfig);
+        console.log();
+
+        console.log('\u001B[96m========== package.json ==========\u001B[0m');
+        console.log(packageJSON);
+        console.log();
+
+        console.log('\u001B[96m========== .env ==========\u001B[0m');
+        console.log(envContent);
+        console.log();
+
+        console.log('\u001B[96m========== README.md ==========\u001B[0m');
+        console.log(readme);
+        console.log();
 
         const endpointCount = components.filter(c => c.type === 'endpoint').length;
 
@@ -33,7 +64,6 @@ export default function ConfigSummaryModal({
             */
 
             let successMessage = `
-                <p>El código de tu API ha sido copiado al portapapeles</p>
                 <div style="margin-top: 15px; padding: 10px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid #10b981;">
                     <p style="margin: 5px 0; font-size: 14px;">${endpointCount} endpoints configurados</p>
                     <p style="margin: 5px 0; font-size: 14px;">Servidor en puerto ${apiConfig.port}</p>
@@ -108,8 +138,8 @@ export default function ConfigSummaryModal({
     };
 
     return (
-        <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4" 
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
             style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
             onClick={(e) => {
                 if (e.target === e.currentTarget) {
@@ -162,7 +192,7 @@ export default function ConfigSummaryModal({
                         <ArrowLeft size={18} className="mr-1" />
                         Volver a Configuración
                     </button>
-                    
+
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setShowConfigSummary(false)}
@@ -171,11 +201,11 @@ export default function ConfigSummaryModal({
                             Cancelar
                         </button>
                         <button
-                            onClick={handleGenerateAndCopy}
+                            onClick={handleGenerateAndDownload}
                             className="flex items-center px-5 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
                         >
                             <Download size={18} className="mr-2" />
-                            Generar y Copiar
+                            Descargar Código
                         </button>
                     </div>
                 </div>
