@@ -1,0 +1,10 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo plano -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="#9810FA"/>
+
+  <!-- "G" grande como elemento gráfico dominante -->
+  <text x="256" y="330" font-family="Arial, Helvetica, sans-serif" font-size="330" font-weight="800" fill="#FFFFFF" text-anchor="middle">G</text>
+
+  <!-- "API" completo, anidado en la base -->
+  <text x="256" y="410" font-family="Arial, Helvetica, sans-serif" font-size="66" font-weight="800" fill="#19CE61" text-anchor="middle" letter-spacing="3">API</text>
+</svg>
