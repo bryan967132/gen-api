@@ -43,8 +43,8 @@ DB_PORT=6379`;
 
 const dbVars = {
     mysql: getMySQLVars,
-    oracle: getPostgreSQLVars,
-    postgresql: getOracleSQLVars,
+    oracle: getOracleSQLVars,
+    postgresql: getPostgreSQLVars,
     mssql: getMSSQLVars,
     mongodb: getMongoDBVars,
     redis: getRedisVars,

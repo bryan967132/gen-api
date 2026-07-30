@@ -1,24 +1,29 @@
-import { execSync } from 'node:child_process';
-
 const dbDependency = {
     mysql: 'mysql2',
     oracle: 'oracledb',
     postgresql: 'pg',
 };
 
-const versions = packages =>
-    Object.fromEntries(
-        packages.map(pkg => [
-            pkg,
-            '^' +
-                execSync(`pnpm view ${pkg} version`, {
-                    encoding: 'utf8',
-                }).trim(),
-        ])
+const getLatestVersion = async packageName => {
+    const response = await fetch(
+        `https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`
     );
 
-const getPackageContent = (name, description, dependencies) => ({
-    name: name.trim().toLowerCase().replace(/\s+/, '-'),
+    if (response.ok) {
+        const { version } = await response.json();
+        return `^${version}`;
+    }
+
+    return '*';
+};
+
+const versions = async packages =>
+    Object.fromEntries(
+        await Promise.all(packages.map(async pkg => [pkg, await getLatestVersion(pkg)]))
+    );
+
+const getPackageContent = async (name, description, dependencies) => ({
+    name: name.trim().toLowerCase().replaceAll(/\s+/g, '-'),
     version: '1.0.0',
     description,
     main: 'index.js',
@@ -30,16 +35,16 @@ const getPackageContent = (name, description, dependencies) => ({
     author: '',
     license: 'ISC',
     type: 'module',
-    dependencies: versions(dependencies),
-    devDependencies: versions(['nodemon']),
+    dependencies: await versions(dependencies),
+    devDependencies: await versions(['nodemon']),
 });
 
-export const generatePackage = (projectName, description, useEnvVar, { enabled, type }) => {
+export const generatePackage = async (projectName, description, useEnvVar, { enabled, type }) => {
     let dependencies = ['cors', 'express'];
     if (useEnvVar) dependencies.push('dotenv');
     if (enabled) dependencies.push(dbDependency[type] || type);
 
-    const content = getPackageContent(projectName, description, dependencies);
+    const content = await getPackageContent(projectName, description, dependencies);
     return {
         content: JSON.stringify(content, null, 2),
         dependencies: content.dependencies,
