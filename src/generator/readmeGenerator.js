@@ -13,19 +13,18 @@ pnpm install
 
 ## Estructura del Proyecto
 \`\`\`
-${name.trim().toLowerCase().replace(/\s+/, '-')}${
-    useEnvVar ? '\n├── configurations\n│   └── db.js' : ''
-}
-├── controllers${groups
+${name.trim().toLowerCase().replace(/\s+/, '-')}
+├── src${useEnvVar ? '\n│   ├── configurations\n│   │   └── db.js' : ''}
+│   ├── controllers${groups
     .map(
         (group, index) =>
-            `${index < groups.length - 1 ? '\n│   ├── ' : '\n│   └── '}${group}.controller.json`
+            `${index < groups.length - 1 ? '\n│   │   ├── ' : '\n│   │   └── '}${group}.controller.json`
     )
     .join('\n')}
-├── routes${groups
+│   └── routes${groups
     .map(
         (group, index) =>
-            `${index < groups.length - 1 ? '\n│   ├── ' : '\n│   └── '}${group}.route.json`
+            `${index < groups.length - 1 ? '\n│       ├── ' : '\n│       └── '}${group}.route.json`
     )
     .join('\n')}
 ├── index.js
