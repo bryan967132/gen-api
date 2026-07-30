@@ -28,10 +28,10 @@ export default function ConfigSummaryModal({
         // console.log(components);
         groups.forEach(({ groupName, controller, route }) => {
             console.log('\u001B[96m========== GROUP NAME:', groupName, '==========\u001B[0m');
-            console.log(`\u001B[32m----- controllers/${groupName}.controller.js -----\u001B[0m`);
+            console.log(`\u001B[32m----- ./src/controllers/${groupName}.controller.js -----\u001B[0m`);
             console.log(controller);
             console.log();
-            console.log(`\u001B[32m----- routes/${groupName}.route.js -----\u001B[0m`);
+            console.log(`\u001B[32m----- ./src/routes/${groupName}.routes.js -----\u001B[0m`);
             console.log(route);
             console.log();
         });
@@ -40,7 +40,7 @@ export default function ConfigSummaryModal({
         console.log(index);
         console.log();
 
-        console.log('\u001B[96m========== configurations/db.js ==========\u001B[0m');
+        console.log('\u001B[96m========== ./src/configurations/database.config.js ==========\u001B[0m');
         console.log(dbConfig);
         console.log();
 

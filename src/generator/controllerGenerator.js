@@ -27,6 +27,10 @@ const generateControllerCode = (
     return {
         nameFunction,
         method,
+        parameterType,
+        params,
+        successResponse,
+        errorResponse,
         path: getRelativePath({ parentRoute, path, parameterType, params }),
         content: `export const ${nameFunction} = (req, res) => {${getParams(parameterType, params)}
     try {

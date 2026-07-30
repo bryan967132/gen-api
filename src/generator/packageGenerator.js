@@ -18,7 +18,7 @@ const versions = packages =>
     );
 
 const getPackageContent = (name, description, dependencies) => ({
-    name: 'mi-api',
+    name: name.trim().toLowerCase().replace(/\s+/, '-'),
     version: '1.0.0',
     description,
     main: 'index.js',
@@ -39,5 +39,10 @@ export const generatePackage = (projectName, description, useEnvVar, { enabled, 
     if (useEnvVar) dependencies.push('dotenv');
     if (enabled) dependencies.push(dbDependency[type] || type);
 
-    return JSON.stringify(getPackageContent(projectName, description, dependencies), null, 2);
+    const content = getPackageContent(projectName, description, dependencies);
+    return {
+        content: JSON.stringify(content, null, 2),
+        dependencies: content.dependencies,
+        devDependencies: content.devDependencies,
+    };
 };

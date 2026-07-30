@@ -41,8 +41,18 @@ const buildGroup = (endpointGroup, { enabled, exported }, getRelativePath) => {
     return {
         groupName,
         path: endpointGroup.path,
+        docController: controllers.map(
+            ({ method, parameterType, params, path, successResponse, errorResponse }) => ({
+                method,
+                parameterType,
+                params,
+                path,
+                successResponse,
+                errorResponse,
+            })
+        ),
         controller: `${
-            enabled ? `import ${exported} from '../configurations/db.js';\n\n` : ''
+            enabled ? `import ${exported} from '../configurations/database.config.js';\n\n` : ''
         }${controllers.map(c => c.content).join('\n\n')}`,
         route: generateRouterGroup(groupName, controllers),
     };
@@ -88,17 +98,31 @@ export const generateAPICode = (
 
     const { content: dbConfig, exported } = generateDBConnector(useEnvVar, databaseConfig);
 
-    const groups = allEndpointsGroups.map(groups =>
-        buildGroup(groups, { enabled: databaseConfig.enabled, exported }, getRelativePath)
+    const groups = allEndpointsGroups.map(group =>
+        buildGroup(group, { enabled: databaseConfig.enabled, exported }, getRelativePath)
+    );
+
+    const { content, dependencies, devDependencies } = generatePackage(
+        name,
+        description,
+        useEnvVar,
+        databaseConfig
     );
 
     return {
         readme: generateREADME(
             name,
+            description,
             useEnvVar,
-            groups.map(({ groupName }) => groupName)
+            groups.map(({ groupName, path, docController }) => ({
+                groupName,
+                path,
+                docController,
+            })),
+            dependencies,
+            devDependencies
         ),
-        packageJSON: generatePackage(name, description, useEnvVar, databaseConfig),
+        packageJSON: content,
         envContent: generateEnvFile(useEnvVar, port, databaseConfig),
         dbConfig,
         groups,

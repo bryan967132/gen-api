@@ -1,6 +1,6 @@
 const getImportRoutes = groups =>
     groups
-        .map(({ groupName }) => `import ${groupName} from './routes/${groupName}.route.js';`)
+        .map(({ groupName }) => `import ${groupName} from './src/routes/${groupName}.routes.js';`)
         .join('\n') + (groups.length ? '\n' : '');
 
 const getUseRoutes = (groups, jump) =>
