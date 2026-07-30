@@ -20,17 +20,32 @@ const paramType = {
     },
 };
 
+const codeResponse = {
+    200: 'OK - 200',
+    201: 'Created - 201',
+    202: 'Accepted - 202',
+    204: 'No Content - 204',
+    400: 'Bad Request - 400',
+    401: 'Unauthorized - 401',
+    403: 'Forbidden - 403',
+    404: 'Not Found - 404',
+    409: 'Conflict - 409',
+    422: 'Unprocessable Entity - 422',
+    500: 'Internal Server Error - 500',
+    503: 'Service Unavailable - 503',
+};
+
 const getResponse = (successResponse, errorResponse) => `\n* **Response**:
-    * OK: ${successResponse.statusCode}
+    * ${codeResponse[successResponse.statusCode]}
     \`\`\`json
     {
-${successResponse.fields.map(({ key, value }) => `        "${key}": ${value}`).join(',\n')}
+${successResponse.fields.map(({ key, value }) => `        "${key}": ${['{}', '[]', '()'].includes(value) ? value : `"${value}"`}`).join(',\n')}
     }
     \`\`\`
-    * ERROR: ${errorResponse.statusCode}
+    * ${codeResponse[errorResponse.statusCode]}
     \`\`\`json
     {
-${errorResponse.fields.map(({ key, value }) => `        "${key}": ${value}`).join(',\n')}
+${errorResponse.fields.map(({ key, value }) => `        "${key}": ${['{}', '[]', '()'].includes(value) ? value : `"${value}"`}`).join(',\n')}
     }
     \`\`\``;
 
@@ -44,7 +59,7 @@ const getEndpoints = (path, docController) =>
     docController
         .map(
             ({ method, parameterType, params, path: localPath, successResponse, errorResponse }) =>
-                `\n**${method}** \`${path}${localPath}\`${getRequest(
+                `\n**${method}** \`${`${path}${localPath}`.replaceAll('//', '/')}\`${getRequest(
                     parameterType,
                     `${path}${localPath}`,
                     params
@@ -69,6 +84,7 @@ export const generateREADME = (
     name,
     description,
     useEnvVar,
+    dbEnabled,
     groups,
     dependencies,
     devDependencies
@@ -108,8 +124,8 @@ pnpm start
 
 ## Estructura del Proyecto
 \`\`\`
-${name.trim().toLowerCase().replace(/\s+/, '-')}
-├── src${useEnvVar ? '\n│   ├── configurations\n│   │   └── database.config.js' : ''}
+${name.trim().toLowerCase().replaceAll(/\s+/g, '-')}
+├── src${dbEnabled ? '\n│   ├── configurations\n│   │   └── database.config.js' : ''}
 │   ├── controllers${groups
     .map(
         ({ groupName }, index) =>
@@ -121,7 +137,7 @@ ${name.trim().toLowerCase().replace(/\s+/, '-')}
         ({ groupName }, index) =>
             `${index < groups.length - 1 ? '\n│       ├── ' : '\n│       └── '}${groupName}.routes.json`
     )
-    .join('')}
+    .join('')}${useEnvVar ? '\n├── .env' : ''}
 ├── index.js
 ├── package.json
 └── README.md
