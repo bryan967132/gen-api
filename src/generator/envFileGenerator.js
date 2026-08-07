@@ -24,7 +24,7 @@ DB_SERVICE=XEPDB1`;
 
 const getMSSQLVars = () =>
     `\n\n# Variables DB Microsoft SQL Server
-DB_HOST=localhost
+DB_SERVER=localhost
 DB_PORT=1433
 DB_USER=sa
 DB_PASSWORD=1234

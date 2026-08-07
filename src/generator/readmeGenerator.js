@@ -1,58 +1,31 @@
-const paramType = {
-    route: {
-        alias: 'Route Params',
-        buildExample: (path, params) =>
-            `\n${params.reduce((path, param) => path.replace(`:${param}`, `<value:${param}>`), path)}\n`,
-    },
-    body: {
-        alias: 'Request Body',
-        buildExample: (path, params) =>
-            `json\n{\n    ${params.map(param => `"${param}": <value|obj|array>`).join(',\n    ')}\n}\n`,
-    },
-    query: {
-        alias: 'Query Params',
-        buildExample: (path, params) =>
-            `\n${path}?${params.map(param => `${param}=<value>`).join('&')}\n`,
-    },
-    headers: {
-        alias: 'Headers',
-        buildExample: (_, params) => `\n${params.map(param => `${param}: <value>`).join('\n')}\n`,
-    },
-};
+import { paramTypes, codeResponse, dbVariables } from '../utils/variables.js';
 
-const codeResponse = {
-    200: 'OK - 200',
-    201: 'Created - 201',
-    202: 'Accepted - 202',
-    204: 'No Content - 204',
-    400: 'Bad Request - 400',
-    401: 'Unauthorized - 401',
-    403: 'Forbidden - 403',
-    404: 'Not Found - 404',
-    409: 'Conflict - 409',
-    422: 'Unprocessable Entity - 422',
-    500: 'Internal Server Error - 500',
-    503: 'Service Unavailable - 503',
-};
+const getDataResponse = (fields, indent = 8) =>
+    fields
+        .map(
+            ({ key, value }) =>
+                `\n${' '.repeat(indent)}"${key}": ${['{}', '[]', '()'].includes(value) ? value : `"${value}"`}`
+        )
+        .join(',');
 
 const getResponse = (successResponse, errorResponse) => `\n* **Response**:
     * ${codeResponse[successResponse.statusCode]}
     \`\`\`json
     {
-${successResponse.fields.map(({ key, value }) => `        "${key}": ${['{}', '[]', '()'].includes(value) ? value : `"${value}"`}`).join(',\n')}
+${getDataResponse(successResponse.fields)}
     }
     \`\`\`
     * ${codeResponse[errorResponse.statusCode]}
     \`\`\`json
     {
-${errorResponse.fields.map(({ key, value }) => `        "${key}": ${['{}', '[]', '()'].includes(value) ? value : `"${value}"`}`).join(',\n')}
+${getDataResponse(errorResponse.fields)}
     }
     \`\`\``;
 
-const getRequest = (parameterType, path, params, param) =>
+const getRequest = (parameterType, path, params) =>
     parameterType !== 'none'
-        ? `\n* **${(param = paramType[parameterType]).alias}**:
-\`\`\`${param.buildExample(path, params)}\`\`\``
+        ? `\n* **${(parameterType = paramTypes[parameterType]).alias}**:
+\`\`\`${parameterType.buildExample(path, params)}\`\`\``
         : '\n* **Sin Parametros**';
 
 const getEndpoints = (path, docController) =>
@@ -84,7 +57,7 @@ export const generateREADME = (
     name,
     description,
     useEnvVar,
-    dbEnabled,
+    { enabled: dbEnabled, type: dbType },
     groups,
     dependencies,
     devDependencies
@@ -142,7 +115,19 @@ ${name.trim().toLowerCase().replaceAll(/\s+/g, '-')}
 ├── package.json
 └── README.md
 \`\`\`
-
+${
+    dbEnabled
+        ? `\n## Configuración de la Base de Datos \`${dbVariables[dbType].name}\`
+| Variable | Descripción | Valor por Defecto |
+|-|:-|:-|
+${dbVariables[dbType].variables.map(({ envVariable, variable, description, defaultValue }) => `| \`${useEnvVar ? envVariable : variable}\` | ${description} | \`${defaultValue}\` |`).join('\n')}
+${
+    useEnvVar
+        ? '\n* **NOTA**: Las credenciales de la base de datos deben ser configuradas en las variables de entorno utilizadas, se encuentran definidas en el archivo [\`.env\`](./.env).\n'
+        : '\n* **NOTA**: Las credenciales de la base de datos deben ser configuradas en el conector, definido en el archivo [\`src/configurations/database.config.js\`](./src/configurations/database.config.js).\n'
+}`
+        : ''
+}
 ## Tecnologías
 * **NOTA**: Las dependencias utilizadas se encuentran definidas en el archivo [\`package.json\`](./package.json).
 
