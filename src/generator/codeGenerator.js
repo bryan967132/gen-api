@@ -68,7 +68,7 @@ const buildGroup = (endpointGroup, { enabled, exported }, getRelativePath) => {
  * @param {Function} getRelativePath - Función que devuelve información de rutas.
  * @returns {string} Código generado de la API en formato de texto.
  */
-export const generateAPICode = (
+export const generateAPICode = async (
     components,
     { name, port, description },
     useEnvVar,
@@ -102,7 +102,7 @@ export const generateAPICode = (
         buildGroup(group, { enabled: databaseConfig.enabled, exported }, getRelativePath)
     );
 
-    const { content, dependencies, devDependencies } = generatePackage(
+    const { content, dependencies, devDependencies } = await generatePackage(
         name,
         description,
         useEnvVar,
@@ -114,6 +114,7 @@ export const generateAPICode = (
             name,
             description,
             useEnvVar,
+            databaseConfig.enabled,
             groups.map(({ groupName, path, docController }) => ({
                 groupName,
                 path,

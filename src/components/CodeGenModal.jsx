@@ -94,12 +94,12 @@ export default function CodeGenModal({
                                     <option value="mongodb">MongoDB</option>
                                     <option value="redis">Redis</option>
                                 </select>
-                                <div className="bg-blue-50 p-3 rounded-lg mt-3 border-l-4 border-blue-500">
+                                {tempUseEnv && <div className="bg-blue-50 p-3 rounded-lg mt-3 border-l-4 border-blue-500">
                                     <div className="flex items-center text-blue-800 text-xs">
                                         <Lock size={14} className="mr-2 flex-shrink-0" />
                                         Las credenciales se configurarán en el archivo .env
                                     </div>
-                                </div>
+                                </div>}
                             </div>
                         )}
                     </div>

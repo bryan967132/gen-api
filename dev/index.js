@@ -484,7 +484,7 @@ const components = [
     },
 ];
 
-const { readme, envContent, packageJSON, dbConfig, groups, index } = generateAPICode(
+const { readme, envContent, packageJSON, dbConfig, groups, index } = await generateAPICode(
     components,
     {
         name: 'Mi API',

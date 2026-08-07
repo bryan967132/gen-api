@@ -5,7 +5,7 @@ const getMySQLConnector = useEnvVar => ({
     content: `import mysql from "mysql2/promise";
 
 const connection = await mysql.createConnection({
-    host: ${envOrValue(useEnvVar, 'DB_HOST', 'localhost')},
+    host: ${envOrValue(useEnvVar, 'DB_HOST', "'localhost'")},
     port: ${envOrValue(useEnvVar, 'DB_PORT', '3306')},
     user: ${envOrValue(useEnvVar, 'DB_USER', "'root'")},
     password: ${envOrValue(useEnvVar, 'DB_PASSWORD', "'1234'")},
@@ -20,7 +20,7 @@ const getPostgreSQLClient = useEnvVar => ({
     content: `import { Client } from "pg";
 
 const client = new Client({
-    host: ${envOrValue(useEnvVar, 'DB_HOST', 'localhost')},
+    host: ${envOrValue(useEnvVar, 'DB_HOST', "'localhost'")},
     port: ${envOrValue(useEnvVar, 'DB_PORT', '5432')},
     user: ${envOrValue(useEnvVar, 'DB_USER', "'postgres'")},
     password: ${envOrValue(useEnvVar, 'DB_PASSWORD', "'1234'")},
@@ -101,8 +101,8 @@ export default client;`,
 
 const dbConfig = {
     mysql: getMySQLConnector,
-    oracle: getPostgreSQLClient,
-    postgresql: getOracleSQLConnector,
+    oracle: getOracleSQLConnector,
+    postgresql: getPostgreSQLClient,
     mssql: getMSSQLPool,
     mongodb: getMongoDB,
     redis: getRedisClient,

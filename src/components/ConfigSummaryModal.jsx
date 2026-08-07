@@ -1,6 +1,7 @@
 import { X, ArrowLeft, Download, AlertTriangle } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { generateAPICode } from '../generator/codeGenerator';
+import { generateZip } from '../downloader/codeDownloader';
 
 export default function ConfigSummaryModal({
     components,
@@ -22,46 +23,11 @@ export default function ConfigSummaryModal({
 
         setShowConfigSummary(false);
 
-        console.log(components);
-
-        const { readme, envContent, packageJSON, dbConfig, groups, index } = generateAPICode(components, apiConfig, useEnv, { enabled: useDb, type: dbType }, getRelativePath);
-        // console.log(components);
-        groups.forEach(({ groupName, controller, route }) => {
-            console.log('\u001B[96m========== GROUP NAME:', groupName, '==========\u001B[0m');
-            console.log(`\u001B[32m----- ./src/controllers/${groupName}.controller.js -----\u001B[0m`);
-            console.log(controller);
-            console.log();
-            console.log(`\u001B[32m----- ./src/routes/${groupName}.routes.js -----\u001B[0m`);
-            console.log(route);
-            console.log();
-        });
-
-        console.log('\u001B[96m========== index.js ==========\u001B[0m');
-        console.log(index);
-        console.log();
-
-        console.log('\u001B[96m========== ./src/configurations/database.config.js ==========\u001B[0m');
-        console.log(dbConfig);
-        console.log();
-
-        console.log('\u001B[96m========== package.json ==========\u001B[0m');
-        console.log(packageJSON);
-        console.log();
-
-        console.log('\u001B[96m========== .env ==========\u001B[0m');
-        console.log(envContent);
-        console.log();
-
-        console.log('\u001B[96m========== README.md ==========\u001B[0m');
-        console.log(readme);
-        console.log();
-
+        const generatedCode = await generateAPICode(components, apiConfig, useEnv, { enabled: useDb, type: dbType }, getRelativePath);
         const endpointCount = components.filter(c => c.type === 'endpoint').length;
 
         try {
-            /*
-            DESCARGA DE DIRECTORIO COMPRIMIDO
-            */
+            generateZip(apiConfig.name, generatedCode);
 
             let successMessage = `
                 <div style="margin-top: 15px; padding: 10px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid #10b981;">
@@ -70,7 +36,7 @@ export default function ConfigSummaryModal({
                 </div>
             `;
 
-            if (envContent) {
+            if (generatedCode.envContent) {
                 successMessage += `
                     <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; border-left: 4px solid #f59e0b;">
                         <div style="display: flex; align-items: center; margin-bottom: 8px;">
@@ -97,8 +63,8 @@ export default function ConfigSummaryModal({
                             <h4 style="margin: 0; color: #1e40af; font-size: 14px; font-weight: 600;">Conector de base de datos generado</h4>
                         </div>
                         <p style="margin: 0; color: #1e40af; font-size: 13px;">
-                            Base de datos <strong>${dbType.toUpperCase()}</strong> configurada<br/>
-                            Completa las credenciales en el archivo .env descargado
+                            Base de datos <strong>${dbType.toUpperCase()}</strong> configurada<br/>${
+                            useEnv?'\nCompleta las credenciales en el archivo .env descargado':''}
                         </p>
                     </div>
                 `;
@@ -169,16 +135,14 @@ export default function ConfigSummaryModal({
                         </div>
                     </div>
 
-                    {(tempUseEnv || tempUseDb) && (
-                        <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
-                            <div className="flex items-center">
-                                <AlertTriangle className="text-yellow-600 mr-2 flex-shrink-0" size={18} />
-                                <p className="text-yellow-800 text-sm font-medium">
-                                    Se generará el archivo <strong>.env</strong> que deberás completar con tus credenciales
-                                </p>
-                            </div>
+                    {tempUseEnv && <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                        <div className="flex items-center">
+                            <AlertTriangle className="text-yellow-600 mr-2 flex-shrink-0" size={18} />
+                            <p className="text-yellow-800 text-sm font-medium">
+                                Se generará el archivo <strong>.env</strong> que deberás completar con tus credenciales
+                            </p>
                         </div>
-                    )}
+                    </div>}
                 </div>
 
                 <div className="border-t border-gray-200 p-4 flex items-center justify-between bg-gray-50 rounded-b-xl">
