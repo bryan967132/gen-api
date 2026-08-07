@@ -9,14 +9,12 @@ const getUseRoutes = (groups, jump) =>
     jump;
 
 export const generateIndex = (useEnvVar, port, groups) => {
-    return `import express from 'express';
+    return `${useEnvVar ? `import 'dotenv/config';\n` : ''}import express from 'express';
 import cors from 'cors';
-${getImportRoutes(groups)}${
-        useEnvVar ? `import { config } from 'dotenv';\n\n` : ''
-    }${useEnvVar ? `config({ path: './.env' });` : ''}
+${getImportRoutes(groups)}
 const app = express();
 
-app.use(cors())
+app.use(cors());
 app.use(express.json());
 ${getUseRoutes(groups)}
 const API_PORT = ${useEnvVar ? 'process.env.API_PORT || 3000' : port};

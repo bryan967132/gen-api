@@ -6,14 +6,6 @@ import { generatePackage } from './packageGenerator.js';
 import { generateEnvFile } from './envFileGenerator.js';
 import { generateREADME } from './readmeGenerator.js';
 
-const structure = [
-    { id: 1, name: 'src', type: 'folder', parent: null },
-    { id: 2, name: 'config', type: 'folder', parent: 1 },
-    { id: 3, name: 'controllers', type: 'folder', parent: 1 },
-    { id: 4, name: 'routes', type: 'folder', parent: 1 },
-    { id: 5, name: 'utils', type: 'folder', parent: 1 },
-];
-
 const getEndpointsDeep = (components, routeId) => {
     const directEndpoints = components.filter(
         c => c.type === 'endpoint' && c.parentRoute === routeId
@@ -114,7 +106,7 @@ export const generateAPICode = async (
             name,
             description,
             useEnvVar,
-            databaseConfig.enabled,
+            databaseConfig,
             groups.map(({ groupName, path, docController }) => ({
                 groupName,
                 path,
