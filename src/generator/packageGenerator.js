@@ -1,8 +1,4 @@
-const dbDependency = {
-    mysql: 'mysql2',
-    oracle: 'oracledb',
-    postgresql: 'pg',
-};
+import { dbDependency } from '../utils/variables.js';
 
 const getLatestVersion = async packageName => {
     const response = await fetch(

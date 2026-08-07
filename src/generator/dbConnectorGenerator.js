@@ -54,7 +54,7 @@ const getMSSQLPool = useEnvVar => ({
     content: `import sql from "mssql";
 
 const pool = await sql.connect({
-    server: ${envOrValue(useEnvVar, 'DB_HOST', "'localhost'")},
+    server: ${envOrValue(useEnvVar, 'DB_SERVER', "'localhost'")},
     port: ${envOrValue(useEnvVar, 'DB_PORT', '1433')},
     user: ${envOrValue(useEnvVar, 'DB_USER', "'sa'")},
     password: ${envOrValue(useEnvVar, 'DB_PASSWORD', "'1234'")},
@@ -70,6 +70,7 @@ const getMongoDB = useEnvVar => ({
 
 const DB_HOST = ${envOrValue(useEnvVar, 'DB_HOST', "'localhost'")};
 const DB_PORT = ${envOrValue(useEnvVar, 'DB_PORT', '27017')};
+const DB_NAME = ${envOrValue(useEnvVar, 'DB_NAME', "'mi_bd'")};
 
 const client = new MongoClient(
     \`mongodb://\${DB_HOST}:\${DB_PORT}\`
@@ -77,7 +78,7 @@ const client = new MongoClient(
 
 await client.connect();
 
-const db = client.db(${envOrValue(useEnvVar, 'DB_NAME', "'mi_bd'")});
+const db = client.db(DB_NAME);
 
 export default db;`,
     exported: 'db',
@@ -101,8 +102,8 @@ export default client;`,
 
 const dbConfig = {
     mysql: getMySQLConnector,
-    oracle: getOracleSQLConnector,
     postgresql: getPostgreSQLClient,
+    oracle: getOracleSQLConnector,
     mssql: getMSSQLPool,
     mongodb: getMongoDB,
     redis: getRedisClient,
