@@ -64,6 +64,33 @@ export const generateREADME = (
 ) => `# ${name}
 ${description}
 
+## Node JS
+
+Antes de ejecutar la API, asegúrate de tener instalado Node.js en tu equipo. Si aún no lo tienes instalado, sigue estos pasos:
+
+* Ingresa al sitio oficial de [Node.js](https://nodejs.org/en/download).
+* Descarga la versión LTS (Long Term Support) recomendada para tu sistema operativo.
+* Ejecuta el instalador y sigue las instrucciones.
+* Verifica que la instalación se haya completado correctamente ejecutando los siguientes comandos en una terminal:
+    \`\`\`sh
+    node -v
+    npm -v
+    \`\`\`
+
+## pnpm
+
+Se recomienda el uso de \`pnpm\` como gestor de paquetes por sus mecanismos adicionales de seguridad y control de dependencias, que ayudan a reducir ciertos riesgos asociados a la instalación de paquetes. No obstante, también es posible utilizar npm como alternativa.
+
+Una vez instalado Node.js, instala pnpm ejecutando el siguiente comando:
+\`\`\`sh
+npm install -g pnpm
+\`\`\`
+
+Verifica que pnpm se haya instalado correctamente:
+\`\`\`sh
+pnpm -v
+\`\`\`
+
 ## Preparación del Entorno
 ### Instalación de Dependencias
 \`\`\`sh
@@ -102,13 +129,13 @@ ${name.trim().toLowerCase().replaceAll(/\s+/g, '-')}
 │   ├── controllers${groups
     .map(
         ({ groupName }, index) =>
-            `${index < groups.length - 1 ? '\n│   │   ├── ' : '\n│   │   └── '}${groupName}.controller.json`
+            `${index < groups.length - 1 ? '\n│   │   ├── ' : '\n│   │   └── '}${groupName}.controller.js`
     )
     .join('')}
 │   └── routes${groups
     .map(
         ({ groupName }, index) =>
-            `${index < groups.length - 1 ? '\n│       ├── ' : '\n│       └── '}${groupName}.routes.json`
+            `${index < groups.length - 1 ? '\n│       ├── ' : '\n│       └── '}${groupName}.routes.js`
     )
     .join('')}${useEnvVar ? '\n├── .env' : ''}
 ├── index.js
