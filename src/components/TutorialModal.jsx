@@ -235,7 +235,7 @@ export default function TutorialModal({
                             <div>
                                 <p className="font-semibold text-yellow-800 text-sm mb-1">Código listo para usar</p>
                                 <p className="text-yellow-700 text-xs">
-                                    El código se descargará en un archivo comprimido con el nombre que asignaste a tu API.
+                                    El código fuente de la API REST basada en Node.js y Express se descargará en un archivo comprimido (ZIP) cuyo nombre corresponderá al nombre asignado a la API.
                                 </p>
                             </div>
                         </div>
