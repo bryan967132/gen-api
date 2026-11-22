@@ -137,13 +137,13 @@ export default function Sidebar({
 
             <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <h3 className="text-xs font-semibold text-blue-800 mb-2">Cómo usar:</h3>
-                <ul className="text-xs text-blue-700 space-y-1">
-                    <li>• Arrastra <strong>Rutas</strong> al área principal</li>
-                    <li>• <strong>Arrastra componentes existentes</strong> para reubicarlos</li>
-                    <li>• Arrastra elementos dentro de rutas para anidar</li>
-                    <li>• Las rutas pueden contener subrutas</li>
-                    <li>• Configura parámetros en cada endpoint</li>
-                    <li>• Los paths se combinan automáticamente</li>
+                <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                    <li>Arrastra <strong>Rutas</strong> al área principal</li>
+                    <li><strong>Arrastra componentes existentes</strong> para reubicarlos</li>
+                    <li>Arrastra elementos dentro de rutas para anidar</li>
+                    <li>Las rutas pueden contener subrutas</li>
+                    <li>Configura parámetros en cada endpoint</li>
+                    <li>Los paths se combinan automáticamente</li>
                 </ul>
             </div>
 
