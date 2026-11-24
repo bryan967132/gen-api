@@ -6,6 +6,9 @@ export function getHTML(tests, { total, passed, failed }) {
         failed: 'Fallido',
         info: 'Información',
         completed: 'Completado',
+        warning: 'Alerta',
+        component: 'Componente',
+        action: 'Acción',
     };
 
     const renderSummaryTables = tests =>
@@ -48,7 +51,16 @@ export function getHTML(tests, { total, passed, failed }) {
                 item => `
         <div class="validation-item${item.typeInfo === 'list' ? ' list-validation' : ''}">
             <span class="${item.status}">${labels[item.status]}</span>
-            ${item.typeInfo !== 'list' ? `<span>${escapeHTML(item.description)}</span>` : item.description}
+            ${item.typeInfo !== 'list' ? `<span>${escapeHTML(item.description)}</span>` : item.description}${
+                item.screenshot
+                    ? `
+                <button
+                    type="button"
+                    class="screenshot-label"
+                    onclick="openImageModal('data:image/png;base64,${item.screenshot}')"
+                >Ver captura</button>`
+                    : ''
+            }
         </div>`
             )
             .join('');
@@ -80,26 +92,31 @@ export function getHTML(tests, { total, passed, failed }) {
                 if (item.type === 'component' || item.type === 'action') {
                     const results = item.results ?? [];
                     const correct = results.filter(result => result.status === 'passed').length;
+                    const warnings = results.filter(result => result.status === 'warning').length;
                     const failures = results.filter(result => result.status === 'failed').length;
+
+                    const hasWarnings = warnings > 0;
                     const hasFailures = failures > 0;
                     const totalValidations = results.filter(
                         result => result.status !== 'info'
                     ).length;
+
+                    const status = hasFailures ? 'failed' : hasWarnings ? 'warning' : 'passed';
 
                     return `
                 <details class="component" ${hasFailures ? 'open' : ''}>
                     <summary class="component-header">
                         <span class="component-title">
                             <span class="${item.type === 'action' ? 'action' : 'component-name'}">
-                                ${item.type === 'action' ? 'Acción' : 'Componente'}
+                                ${labels[item.type]}
                             </span>
                             <span class="component-label">
                                 ${escapeHTML(item.componentName)}
                             </span>
                         </span>
                         <span class="component-summary">
-                            <span class="${hasFailures ? 'failed' : 'passed'}">
-                                ${hasFailures ? 'Fallido' : 'Correcto'}
+                            <span class="${status}">
+                                ${labels[status]}
                             </span>
                             <span class="component-counter">
                                 ${correct}/${totalValidations}

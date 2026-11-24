@@ -210,6 +210,16 @@ summary,
     font-size: 10px;
     flex-shrink: 0;
 }
+.warning {
+    background: #451A03;
+    color: #FCD34D;
+    border: 1px solid #F59E0B;
+    box-shadow: 0 0 8px #F59E0B55;
+    border-radius: 5px;
+    padding: 3px 7px;
+    font-size: 10px;
+    flex-shrink: 0;
+}
 .failed {
     background: #450A0A;
     color: #FCA5A5;
@@ -442,6 +452,7 @@ summary,
     min-width: 0;
 }
 .component[open] > .component-header .passed,
+.component[open] > .component-header .warning,
 .component[open] > .component-header .failed {
     display: none;
 }

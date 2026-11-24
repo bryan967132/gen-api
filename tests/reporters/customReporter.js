@@ -80,12 +80,7 @@ class CustomReporter {
             failed,
         };
 
-        const html = await prettier.format(getHTML(this.tests, stats), {
-            parser: 'html',
-            tabWidth: 4,
-            useTabs: false,
-            printWidth: 120,
-        });
+        const html = getHTML(this.tests, stats);
         const script = getScript();
         const style = getStyle();
         const output = path.resolve('playwright-report');

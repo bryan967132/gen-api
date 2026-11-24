@@ -10,12 +10,12 @@ export default function EmptyCanvas() {
                 </div>
                 <p className="text-xl font-medium mb-2">¡Comienza a construir tu API!</p>
                 <p className="text-gray-500 mb-4">Arrastra componentes aquí para empezar</p>
-                <div className="text-sm text-gray-400 space-y-1">
-                    <p>• Las <strong>rutas</strong> organizan tus endpoints</p>
-                    <p>• Los <strong>endpoints</strong> definen las respuestas</p>
-                    <p>• Puedes anidar rutas dentro de rutas</p>
-                    <p>• <strong>Arrastra componentes existentes</strong> para reorganizar</p>
-                </div>
+                <ul className="text-sm text-gray-400 space-y-1 list-disc list-inside">
+                    <li>Las <strong>rutas</strong> organizan tus endpoints</li>
+                    <li>Los <strong>endpoints</strong> definen las respuestas</li>
+                    <li>Puedes anidar rutas dentro de rutas</li>
+                    <li><strong>Arrastra componentes existentes</strong> para reorganizar</li>
+                </ul>
             </div>
         </div>
     );

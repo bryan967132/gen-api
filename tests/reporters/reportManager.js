@@ -23,6 +23,7 @@ export async function validateComponent(
                 status: result.status,
                 description: result.description,
                 typeInfo: result.typeInfo ?? 'text',
+                ...(result.screenshot && { screenshot: result.screenshot }),
                 ...(result.error && { error: result.error }),
             });
         } catch (error) {
