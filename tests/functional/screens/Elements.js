@@ -1,0 +1,150 @@
+/**
+ * Elemento localizable mediante XPath. Solo `xpath` es obligatorio.
+ * @typedef {Object} PageElement
+ * @property {string} xpath - Expresión XPath que localiza el elemento en el DOM.
+ * @property {string} [text] - Texto visible esperado del elemento.
+ * @property {string} [placeholder] - Valor del atributo `placeholder`.
+ * @property {string} [expectedValue] - Valor esperado tras la interacción.
+ * @property {string} [description] - Descripción funcional del elemento.
+ */
+
+/**
+ * Selectores XPath y datos esperados de la interfaz de GenAPI.
+ *
+ * @satisfies {Record<string, PageElement>}
+ */
+
+export const genAPI = {
+    textGenApi: {
+        text: 'GenAPI',
+        xpath: '//h2[text()="GenAPI"]',
+    },
+    textGeneraApi: {
+        text: 'Genera tu API visualmente',
+        xpath: '//p[text()="Genera tu API visualmente"]',
+    },
+    textConfiguracion: {
+        text: 'Configuración de la API',
+        xpath: '//h3[text()="Configuración de la API"]',
+    },
+    textNombre: {
+        text: 'Nombre',
+        xpath: '//label[text()="Nombre"]',
+    },
+    inputNombre: {
+        placeholder: 'Mi API',
+        expectedValue: 'Mi API',
+        xpath: '//input[@placeholder="Mi API"]',
+    },
+    textPuerto: {
+        text: 'Puerto',
+        xpath: '//label[text()="Puerto"]',
+    },
+    inputPuerto: {
+        placeholder: '3000',
+        expectedValue: '3000',
+        xpath: '//input[@placeholder="3000"]',
+    },
+    textDescripcion: {
+        text: 'Descripción',
+        xpath: '//label[text()="Descripción"]',
+    },
+    inputDescripcion: {
+        placeholder: 'Descripción de la API',
+        expectedValue: 'API generada con GenAPI',
+        xpath: '//textarea[@placeholder="Descripción de la API"]',
+    },
+    cardRuta: {
+        text: 'Ruta',
+        description: 'Contenedor para endpoints y subrutas',
+        xpath: '//div[.//span[text()="Ruta"] and @draggable="true"]',
+    },
+    cardEndpoint: {
+        text: 'Endpoint',
+        description: 'Endpoint HTTP individual',
+        xpath: '//div[.//span[text()="Endpoint"] and @draggable="true"]',
+    },
+    textEstadisticas: {
+        text: 'Estadísticas',
+        xpath: '//h3[text()="Estadísticas"]',
+    },
+    textRutas: {
+        text: 'Rutas:',
+        xpath: '//span[normalize-space()="Rutas:"]',
+    },
+    textValorRutas: {
+        xpath: '//div[span[normalize-space()="Rutas:"]]/span[contains(@class,"font")]',
+    },
+    textEndpointsIndependientes: {
+        text: 'Endpoints independientes:',
+        xpath: '//span[normalize-space()="Endpoints independientes:"]',
+    },
+    textValorEndpointsIndependientes: {
+        xpath: '//div[span[normalize-space()="Endpoints independientes:"]]/span[contains(@class,"font")]',
+    },
+    textEndpointsAnidados: {
+        text: 'Endpoints anidados:',
+        xpath: '//span[normalize-space()="Endpoints anidados:"]',
+    },
+    textValorEndpointsAnidados: {
+        xpath: '//div[span[normalize-space()="Endpoints anidados:"]]/span[contains(@class,"font")]',
+    },
+    textTotalEndpoints: {
+        text: 'Total endpoints:',
+        xpath: '//span[normalize-space()="Total endpoints:"]',
+    },
+    textValorTotalEndpoints: {
+        xpath: '//div[span[normalize-space()="Total endpoints:"]]/span[not(normalize-space()="Total endpoints:")]',
+    },
+    textComoUsar: {
+        text: 'Cómo usar:',
+        xpath: '//h3[text()="Cómo usar:"]',
+    },
+    listComoUsar: {
+        xpath: '//div[h3[text()="Cómo usar:"]]/ul',
+    },
+    buttonGenerarCodigo: {
+        text: 'Generar Código',
+        xpath: '//button[text()="Generar Código"]',
+    },
+    buttonLimpiarTodo: {
+        text: 'Limpiar Todo',
+        xpath: '//button[text()="Limpiar Todo"]',
+    },
+    textNombreAPI: {
+        xpath: '//h1',
+    },
+    textInformacionAPI: {
+        xpath: '//div[h1]/p[1]',
+    },
+    textDescripcionAPI: {
+        xpath: '//div[h1]/p[2]',
+    },
+    buttonAyuda: {
+        text: 'Ayuda',
+        xpath: '//button[text()="Ayuda"]',
+    },
+    textPuertoAPI: {
+        xpath: '//span[contains(text(),"Servidor: localhost:")]',
+    },
+    areaArrastre: {
+        xpath: '//div[@id="root"]/div/div[2]/div[2]',
+    },
+    textComienza: {
+        text: '¡Comienza a construir tu API!',
+        xpath: '//p[text()="¡Comienza a construir tu API!"]',
+    },
+    textArrastra: {
+        text: 'Arrastra componentes aquí para empezar',
+        xpath: '//p[text()="Arrastra componentes aquí para empezar"]',
+    },
+    listAreaArrastre: {
+        xpath: '//div[p[text()="Arrastra componentes aquí para empezar"]]/ul',
+    },
+    componentRuta: (searching = '@placeholder="Nombre de la ruta"') => ({
+        xpath: `//div[.//input[${searching}] and @draggable="true"]`,
+    }),
+    componentEndpoint: (searching = '@placeholder="/endpoint"') => ({
+        xpath: `//div[div/div/input[${searching}] and @draggable="true"]`,
+    }),
+};
