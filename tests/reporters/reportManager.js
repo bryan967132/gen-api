@@ -36,12 +36,30 @@ export async function validateComponent(
         }
     }
 
+    let screenshotAction;
+    if (type === 'action') {
+        const screenshot = await locator.page().screenshot({
+            fullPage: true,
+            animations: 'disabled',
+        });
+
+        screenshotAction = {
+            status: 'info',
+            typeInfo: 'screenshot',
+            description: `${componentName} completada`,
+            screenshot: screenshot.toString('base64'),
+        };
+
+        results.push(screenshotAction);
+    }
+
     await testInfo.attach('component-validation', {
         body: Buffer.from(
             JSON.stringify({
                 componentName,
                 type,
                 results,
+                ...(screenshotAction && { screenshot: screenshotAction.screenshot }),
             })
         ),
         contentType: 'application/json',

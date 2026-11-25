@@ -39,7 +39,12 @@ export default class T02GenerarProyecto extends GenAPI {
                     genAPI.componentEndpoint()
                 );
 
-                await this.fillEndpointCard('Endpoint', genAPI.componentEndpoint(), component);
+                await this.fillEndpointCard(
+                    'Endpoint',
+                    genAPI.componentEndpoint(),
+                    genAPI.attribsEndpoint(component.parameterType),
+                    component
+                );
             }
         }
     };
@@ -50,6 +55,6 @@ export default class T02GenerarProyecto extends GenAPI {
         await this.textArea('Descripción', genAPI.inputDescripcion, description);
         await this.reportPassSS('Formulario', 'Formulario Llenado');
         await this.createComponents(data, genAPI.areaArrastre);
-        // await this.button('Generar Codigo', genAPI.buttonGenerarCodigo, true);
+        await this.button('Generar Codigo', genAPI.buttonGenerarCodigo, true);
     };
 }

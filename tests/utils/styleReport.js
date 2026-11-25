@@ -185,20 +185,30 @@ summary,
     font-size: 10px;
 }
 .screenshot-label {
-    display: inline-block;
-    width: fit-content;
-    padding: 3px 7px;
-    background: #1e3a5f;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 18px;
+    padding: 0;
+    background: transparent;
     color: #93c5fd;
-    border: 1px solid #3b82f6;
-    border-radius: 5px;
-    font-size: 10px;
-    font-weight: 500;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
+    flex-shrink: 0;
+    transition: color 0.15s ease, filter 0.15s ease;
 }
 .screenshot-label:hover {
-    background: #1d4ed8;
-    color: #ffffff;
+    color: #60a5fa;
+    filter: drop-shadow(0 0 5px #3b82f688);
+}
+.screenshot-label:focus-visible {
+    outline: 1px solid #60a5fa;
+    outline-offset: 2px;
+}
+.screenshot-label svg {
+    display: block;
 }
 .passed {
     background: #052E16;
@@ -268,7 +278,6 @@ summary,
     font-size: 10px;
 }
 .event {
-    padding: 5px 0;
     border-top: 1px solid #374151;
 }
 .event-description {
@@ -276,7 +285,15 @@ summary,
     align-items: center;
     gap: 10px;
     font-size: 12px;
-    padding: 0 0 0 24px;
+    padding: 5px 2px;
+    padding-left: 24px;
+}
+.event-text {
+    flex: 1;
+    min-width: 0;
+}
+.event-description > .screenshot-label {
+    margin-left: auto;
 }
 .error {
     color: #fca5a5;
@@ -379,12 +396,12 @@ summary,
     color: #d1d5db;
     font-size: 11px;
     font-variant-numeric: tabular-nums;
+    min-width: 30px;
+    text-align: right;
 }
 .validation-list {
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    padding: 0 0 5px 24px;
 }
 .validation-item {
     display: flex;
@@ -393,10 +410,15 @@ summary,
     gap: 8px;
     color: #d1d5db;
     font-size: 12px;
+    padding-left: 24px;
+    padding-block: 5px;
 }
 .validation-item .error {
     flex-basis: 100%;
     margin: 0 0 4px;
+}
+.validation-item > .screenshot-label {
+    margin-left: auto;
 }
 .report-layout {
     display: grid;
@@ -453,7 +475,8 @@ summary,
 }
 .component[open] > .component-header .passed,
 .component[open] > .component-header .warning,
-.component[open] > .component-header .failed {
+.component[open] > .component-header .failed,
+.component[open] > .component-header .screenshot-label {
     display: none;
 }
 .list-validation {
@@ -513,6 +536,17 @@ summary,
 }
 .summary-table tbody tr:hover {
     background: #283548;
+}
+.event-description,
+.component-header,
+.validation-item {
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+.event-description:hover,
+.component-header:hover,
+.validation-item:hover {
+    background-color: #2b3748;
 }
 @media (max-width: 750px) {
     body {

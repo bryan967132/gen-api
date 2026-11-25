@@ -12,24 +12,20 @@ export const basicData = [
                 parameterType: 'query',
                 params: ['email', 'password'],
                 successResponse: {
-                    statusCode: 200,
+                    statusCode: '200',
                     fields: [
                         {
                             key: 'message',
-                            value: 'Success',
-                        },
-                        {
-                            key: 'data',
-                            value: '{}',
+                            value: 'User Logged',
                         },
                     ],
                 },
                 errorResponse: {
-                    statusCode: 500,
+                    statusCode: '500',
                     fields: [
                         {
                             key: 'error',
-                            value: 'Something went wrong',
+                            value: 'Failed Login',
                         },
                     ],
                 },
@@ -41,24 +37,20 @@ export const basicData = [
                 parameterType: 'body',
                 params: ['name', 'email', 'password'],
                 successResponse: {
-                    statusCode: 200,
+                    statusCode: '200',
                     fields: [
                         {
                             key: 'message',
-                            value: 'Success',
-                        },
-                        {
-                            key: 'data',
-                            value: '{}',
+                            value: 'User Registered',
                         },
                     ],
                 },
                 errorResponse: {
-                    statusCode: 500,
+                    statusCode: '500',
                     fields: [
                         {
                             key: 'error',
-                            value: 'Something went wrong',
+                            value: 'Failed Register',
                         },
                     ],
                 },

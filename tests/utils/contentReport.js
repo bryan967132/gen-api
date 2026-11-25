@@ -45,22 +45,46 @@ export function getHTML(tests, { total, passed, failed }) {
             )
             .join('');
 
+    const renderScreenshot = screenshot =>
+        screenshot
+            ? `
+        <button
+            type="button"
+            class="screenshot-label"
+            title="Ver captura"
+            aria-label="Ver captura"
+            onclick="event.preventDefault(); event.stopPropagation(); openImageModal('data:image/png;base64,${screenshot}')"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+            >
+                <rect width="18" height="18" x="3" y="3" rx="2"/>
+                <circle cx="9" cy="9" r="2"/>
+                <path d="m21 15-5-5L5 21"/>
+            </svg>
+        </button>`
+            : '';
+
     const renderResults = results =>
         results
             .map(
                 item => `
         <div class="validation-item${item.typeInfo === 'list' ? ' list-validation' : ''}">
             <span class="${item.status}">${labels[item.status]}</span>
-            ${item.typeInfo !== 'list' ? `<span>${escapeHTML(item.description)}</span>` : item.description}${
-                item.screenshot
-                    ? `
-                <button
-                    type="button"
-                    class="screenshot-label"
-                    onclick="openImageModal('data:image/png;base64,${item.screenshot}')"
-                >Ver captura</button>`
-                    : ''
-            }
+            ${
+                item.typeInfo !== 'list'
+                    ? `<span>${escapeHTML(item.description)}</span>`
+                    : item.description
+            }${renderScreenshot(item.screenshot)}
         </div>`
             )
             .join('');
@@ -75,16 +99,7 @@ export function getHTML(tests, { total, passed, failed }) {
     <div class="event">
         <div class="event-description">
             <span class="${status}">${labels[status]}</span>
-            <span class="event-text">${escapeHTML(item.description)}</span>${
-                item.screenshot
-                    ? `
-                <button
-                    type="button"
-                    class="screenshot-label"
-                    onclick="openImageModal('data:image/png;base64,${item.screenshot}')"
-                >Ver captura</button>`
-                    : ''
-            }
+            <span class="event-text">${escapeHTML(item.description)}</span>${renderScreenshot(item.screenshot)}
         </div>
     </div>`;
                 }
@@ -107,20 +122,13 @@ export function getHTML(tests, { total, passed, failed }) {
                 <details class="component" ${hasFailures ? 'open' : ''}>
                     <summary class="component-header">
                         <span class="component-title">
-                            <span class="${item.type === 'action' ? 'action' : 'component-name'}">
-                                ${labels[item.type]}
-                            </span>
-                            <span class="component-label">
-                                ${escapeHTML(item.componentName)}
-                            </span>
+                            <span class="${item.type === 'action' ? 'action' : 'component-name'}">${labels[item.type]}</span>
+                            <span class="component-label">${escapeHTML(item.componentName)}</span>
                         </span>
                         <span class="component-summary">
-                            <span class="${status}">
-                                ${labels[status]}
-                            </span>
-                            <span class="component-counter">
-                                ${correct}/${totalValidations}
-                            </span>
+                            ${renderScreenshot(item.screenshot)}
+                            <span class="${status}">${labels[status]}</span>
+                            <span class="component-counter">${correct}/${totalValidations}</span>
                         </span>
                     </summary>
                     <div class="validation-list">
@@ -142,17 +150,15 @@ export function getHTML(tests, { total, passed, failed }) {
             ${index === 0 ? '' : 'hidden'}
         >
             <h2>${escapeHTML(test.name)}</h2>
-            <p class="test-description">
-                ${test.scenarios.length} escenario(s)
-            </p>${test.scenarios
+            <p class="test-description">${test.scenarios.length} escenario(s)</p>${test.scenarios
                 .map(
                     scenario => `
                 <details class="scenario">
                     <summary>
                         <span>${escapeHTML(scenario.title)}</span>
-                        <span class="scenario-status ${scenario.status === 'passed' ? 'passed' : 'failed'}">
-                            ${scenario.status === 'passed' ? 'Correcto' : 'Fallido'}
-                        </span>
+                        <span class="scenario-status ${scenario.status === 'passed' ? 'passed' : 'failed'}">${
+                            scenario.status === 'passed' ? 'Correcto' : 'Fallido'
+                        }</span>
                     </summary>
                     <div class="scenario-content">
                         ${renderItems(scenario.items)}

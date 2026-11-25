@@ -100,19 +100,20 @@ export default class GenAPI {
     /**
      * Valida una operación de arrastrar y soltar.
      * @param {string} elementName - Nombre descriptivo de la validación.
-     * @param {PageElement} element - Elemento de origen que se arrastra.
+     * @param {PageElement} element - Elemento que se ingresará su informacion.
      * @param {Object} data - Datos de la ruta.
      * @param {string} data.name - Nombre de la ruta.
      * @param {string} data.path - Path de la ruta.
      * @returns {Promise<void>}
      */
-    fillRouteCard = (elementName, element, { name, path }) =>
-        fillRouteCard(this.#page, this.#testInfo, elementName, element, { name, path });
+    fillRouteCard = (elementName, element, data) =>
+        fillRouteCard(this.#page, this.#testInfo, elementName, element, data);
 
     /**
      * Valida una operación de arrastrar y soltar.
      * @param {string} elementName - Nombre descriptivo de la validación.
-     * @param {PageElement} element - Elemento de origen que se arrastra.
+     * @param {PageElement} element - Elemento que se ingresará su informacion.
+     * @param {PageElement} attribs - Atributos del elemento.
      * @param {Object} data - Datos del endpoint.
      * @param {string} data.method - Metodo del endpoint.
      * @param {string} data.path - Path del endpoint.
@@ -122,19 +123,8 @@ export default class GenAPI {
      * @param {string} data.errorResponse - Respuesta de error del endpoint.
      * @returns {Promise<void>}
      */
-    fillEndpointCard = (
-        elementName,
-        element,
-        { method, path, parameterType, params, successResponse, errorResponse }
-    ) =>
-        fillEndpointCard(this.#page, this.#testInfo, elementName, element, {
-            method,
-            path,
-            parameterType,
-            params,
-            successResponse,
-            errorResponse,
-        });
+    fillEndpointCard = (elementName, element, attribs, data) =>
+        fillEndpointCard(this.#page, this.#testInfo, elementName, element, attribs, data);
 
     /**
      * Registra un mensaje informativo con captura de pantalla.

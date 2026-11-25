@@ -147,4 +147,37 @@ export const genAPI = {
     componentEndpoint: (searching = '@placeholder="/endpoint"') => ({
         xpath: `//div[div/div/input[${searching}] and @draggable="true"]`,
     }),
+    attribsEndpoint: type => ({
+        selectMethod: './/div[input[@placeholder="/endpoint"]]/select',
+        inputPath: './/input[@placeholder="/endpoint"]',
+        selectType: './/div[label[text()="Tipo de Parámetros"]]/select',
+
+        inputParam: `.//div[label[text()="${
+            {
+                none: 'Sin parámetros',
+                route: 'Route Parameters',
+                query: 'Query Parameters',
+                body: 'Body Parameters',
+                headers: 'Headers',
+            }[type]
+        }"]]//input`,
+
+        success: {
+            selectCode: './/div[label[text()="Respuesta Exitosa"]]//select',
+            inputKey:
+                './/div[label[text()="Respuesta Exitosa"]]//input[@placeholder="Clave (ej: message)"]',
+            inputValue:
+                './/div[label[text()="Respuesta Exitosa"]]//input[@placeholder="Valor (ej: Success)"]',
+            buttonAdd:
+                './/div[label[text()="Respuesta Exitosa"]]/div[label[text()="Agregar Campo a la Respuesta"]]//button',
+        },
+
+        error: {
+            selectCode: './/div[label[text()="Respuesta de Error"]]//select',
+            inputKey: './/div[label[text()="Respuesta de Error"]]//input[@placeholder="Clave"]',
+            inputValue: './/div[label[text()="Respuesta de Error"]]//input[@placeholder="Valor"]',
+            buttonAdd:
+                './/div[label[text()="Respuesta de Error"]]/div[label[text()="Agregar Campo a la Respuesta"]]//button',
+        },
+    }),
 };

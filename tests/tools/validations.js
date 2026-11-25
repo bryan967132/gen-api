@@ -156,6 +156,50 @@ const checkFill = (element, value) =>
     );
 
 /**
+ * Ingresa una lista de valores en un mismo input,
+ * presionando Enter después de cada ingreso.
+ *
+ * @param {import('@playwright/test').Locator} element
+ * @param {string[]} values Valores a ingresar.
+ */
+const checkFillList = (element, values) =>
+    check(
+        async () => {
+            for (const value of values) {
+                await element.fill(value);
+                await expect(element).toHaveValue(value);
+                await element.press('Enter');
+            }
+        },
+        `Valores ingresados correctamente: ${values.join(', ')}`,
+        () => `No se pudieron ingresar todos los valores: ${values.join(', ')}`
+    );
+
+/**
+ * Ingresa una lista de valores en un mismo input,
+ * presionando Enter después de cada ingreso.
+ *
+ * @param {import('@playwright/test').Locator} element1
+ * @param {import('@playwright/test').Locator} element2
+ * @param {import('@playwright/test').Locator} buttonAdd
+ * @param {string[]} values Valores a ingresar.
+ */
+const checkFillList2 = (element1, element2, buttonAdd, values) =>
+    check(
+        async () => {
+            for (const { key, value } of values) {
+                await element1.fill(key);
+                await expect(element1).toHaveValue(key);
+                await element2.fill(value);
+                await expect(element2).toHaveValue(value);
+                await buttonAdd.click();
+            }
+        },
+        `Valores ingresados correctamente: ${values.map(({ key, value }) => `(${key} = ${value})`).join(', ')}`,
+        () => `No se pudieron ingresar todos los valores: ${values.join(', ')}`
+    );
+
+/**
  * Realiza un clic sobre un componente.
  *
  * @param {import('@playwright/test').Locator} element
@@ -192,9 +236,27 @@ const checkSelectOption = (element, value) =>
             await element.selectOption({ value });
             await expect(element).toHaveValue(value);
         },
-        `Valor seleccionado correcto: "${value}"`,
+        `Valor seleccionado correcto: '${value}'`,
         async () =>
-            `Valor seleccionado incorrecto: se esperaba "${value}", se encontró "${await element.inputValue({ timeout: 2000 })}"`
+            `Valor seleccionado incorrecto: se esperaba '${value}', se encontró '${await element.inputValue({ timeout: 2000 })}'`
+    );
+
+/**
+ * Desplaza la pantalla hasta el componente indicado.
+ *
+ * @param {import('@playwright/test').Locator} element
+ */
+const checkScroll = element =>
+    check(
+        async () => {
+            await element.scrollIntoViewIfNeeded({
+                timeout: 5000,
+            });
+
+            await expect(element).toBeInViewport();
+        },
+        'Componente localizado mediante desplazamiento',
+        () => 'No se pudo desplazar hasta el componente'
     );
 
 /**
@@ -216,12 +278,8 @@ export async function validateLabel(page, testInfo, elementName, { text, xpath }
     await validateComponent(testInfo, `Label ${elementName}`, {
         locator,
         validations: [
-            {
-                execute: element => checkVisible(element),
-            },
-            {
-                execute: element => checkText(element, text),
-            },
+            { execute: element => checkVisible(element) },
+            { execute: element => checkText(element, text) },
         ],
     });
 }
@@ -243,15 +301,9 @@ export async function validateCard(page, testInfo, elementName, { text, descript
     await validateComponent(testInfo, `Card ${elementName}`, {
         locator,
         validations: [
-            {
-                execute: element => checkVisible(element),
-            },
-            {
-                execute: element => checkText(element.locator('xpath=.//span'), text),
-            },
-            {
-                execute: element => checkText(element.locator('xpath=.//p'), description),
-            },
+            { execute: element => checkVisible(element) },
+            { execute: element => checkText(element.locator('xpath=.//span'), text) },
+            { execute: element => checkText(element.locator('xpath=.//p'), description) },
         ],
     });
 }
@@ -283,18 +335,10 @@ export async function validateInputText(
     await validateComponent(testInfo, `Input Text ${elementName}`, {
         locator,
         validations: [
-            {
-                execute: element => checkVisible(element),
-            },
-            {
-                execute: element => checkEnabled(element, enabled),
-            },
-            {
-                execute: element => checkPlaceholder(element, placeholder),
-            },
-            {
-                execute: element => checkValue(element, expectedValue),
-            },
+            { execute: element => checkVisible(element) },
+            { execute: element => checkEnabled(element, enabled) },
+            { execute: element => checkPlaceholder(element, placeholder) },
+            { execute: element => checkValue(element, expectedValue) },
             ...(fillValue !== undefined
                 ? [
                       {
@@ -333,18 +377,10 @@ export async function validateTextArea(
     await validateComponent(testInfo, `Text Area ${elementName}`, {
         locator,
         validations: [
-            {
-                execute: element => checkVisible(element),
-            },
-            {
-                execute: element => checkEnabled(element, enabled),
-            },
-            {
-                execute: element => checkPlaceholder(element, placeholder),
-            },
-            {
-                execute: element => checkValue(element, expectedValue),
-            },
+            { execute: element => checkVisible(element) },
+            { execute: element => checkEnabled(element, enabled) },
+            { execute: element => checkPlaceholder(element, placeholder) },
+            { execute: element => checkValue(element, expectedValue) },
             ...(fillValue !== undefined
                 ? [
                       {
@@ -385,15 +421,9 @@ export async function validateButton(
     await validateComponent(testInfo, `Button ${elementName}`, {
         locator,
         validations: [
-            {
-                execute: element => checkVisible(element),
-            },
-            {
-                execute: element => checkEnabled(element, enabled),
-            },
-            {
-                execute: element => checkText(element, text),
-            },
+            { execute: element => checkVisible(element) },
+            { execute: element => checkEnabled(element, enabled) },
+            { execute: element => checkText(element, text) },
             ...(isClicked
                 ? [
                       {
@@ -422,9 +452,7 @@ export async function validateList(page, testInfo, elementName, { xpath }) {
     await validateComponent(testInfo, `Lista ${elementName}`, {
         locator,
         validations: [
-            {
-                execute: element => checkVisible(element, 'Lista'),
-            },
+            { execute: element => checkVisible(element, 'Lista') },
             {
                 execute: async () => {
                     return check(
@@ -495,33 +523,11 @@ export async function validateDragAndDrop(
         type: 'action',
         locator: sourceLocator,
         validations: [
-            {
-                execute: element => checkVisible(element, 'Componente de origen'),
-            },
-            {
-                execute: () => checkVisible(targetLocator, 'Área de destino'),
-            },
-            {
-                execute: element => checkDragAndDrop(element, targetLocator),
-            },
-            {
-                execute: () => checkVisible(expectedLocator, 'Componente agregado al destino'),
-            },
-            {
-                execute: async () => {
-                    const screenshot = await page.screenshot({
-                        fullPage: true,
-                        animations: 'disabled',
-                    });
-
-                    return {
-                        status: 'info',
-                        typeInfo: 'screenshot',
-                        description: 'Drag & Drop completado',
-                        screenshot: screenshot.toString('base64'),
-                    };
-                },
-            },
+            { execute: element => checkVisible(element, 'Componente de origen') },
+            { execute: () => checkVisible(targetLocator, 'Área de destino') },
+            { execute: element => checkDragAndDrop(element, targetLocator) },
+            { execute: () => checkVisible(expectedLocator, 'Componente agregado al destino') },
+            { execute: () => checkScroll(expectedLocator) },
         ],
     });
 }
@@ -548,30 +554,9 @@ export async function fillRouteCard(page, testInfo, elementName, { xpath }, { na
         type: 'action',
         locator,
         validations: [
-            {
-                execute: element => checkVisible(element),
-            },
-            {
-                execute: () => checkFill(nameLocator, name),
-            },
-            {
-                execute: () => checkFill(pathLocator, path),
-            },
-            {
-                execute: async () => {
-                    const screenshot = await page.screenshot({
-                        fullPage: true,
-                        animations: 'disabled',
-                    });
-
-                    return {
-                        status: 'info',
-                        typeInfo: 'screenshot',
-                        description: 'Configuración de la Ruta completada',
-                        screenshot: screenshot.toString('base64'),
-                    };
-                },
-            },
+            { execute: element => checkVisible(element) },
+            { execute: () => checkFill(nameLocator, name) },
+            { execute: () => checkFill(pathLocator, path) },
         ],
     });
 }
@@ -594,44 +579,57 @@ export async function fillEndpointCard(
     testInfo,
     elementName,
     { xpath },
+    { selectMethod, inputPath, selectType, inputParam, success, error },
     { method, path, parameterType, params, successResponse, errorResponse }
 ) {
     const locator = page.locator(xpath).last();
-    const methodLocator = locator.locator('xpath=.//div[input[@placeholder="/endpoint"]]/select');
-    const pathLocator = locator.locator('xpath=.//input[@placeholder="/endpoint"]');
-    const typeParam = locator.locator('xpath=.//div[label[text()="Tipo de Parámetros"]]/select');
+    const methodLocator = locator.locator(`xpath=${selectMethod}`);
+    const pathLocator = locator.locator(`xpath=${inputPath}`);
+    const typeParam = locator.locator(`xpath=${selectType}`);
+    const paramName = locator.locator(`xpath=${inputParam}`);
+    const selectSuccess = locator.locator(`xpath=${success.selectCode}`);
+    const keySuccess = locator.locator(`xpath=${success.inputKey}`);
+    const valueSuccess = locator.locator(`xpath=${success.inputValue}`);
+    const addSuccess = locator.locator(`xpath=${success.buttonAdd}`);
+    const selectError = locator.locator(`xpath=${error.selectCode}`);
+    const keyError = locator.locator(`xpath=${error.inputKey}`);
+    const valueError = locator.locator(`xpath=${error.inputValue}`);
+    const addError = locator.locator(`xpath=${error.buttonAdd}`);
+
+    let buttons = locator.locator('xpath=.//div[label[text()="Respuesta Exitosa"]]/div[3]//button');
+    let count = await buttons.count();
+    for (let i = 0; i < count; i++) {
+        await buttons.first().click();
+        await expect(buttons).toHaveCount(count - i - 1);
+    }
+
+    buttons = locator.locator('xpath=.//div[label[text()="Respuesta de Error"]]/div[3]//button');
+    count = await buttons.count();
+    for (let i = 0; i < count; i++) {
+        await buttons.first().click();
+        await expect(buttons).toHaveCount(count - i - 1);
+    }
 
     await validateComponent(testInfo, `Ingreso De Datos ${elementName}`, {
         type: 'action',
         locator,
         validations: [
+            { execute: element => checkVisible(element) },
+            { execute: () => checkSelectOption(methodLocator, method) },
+            { execute: () => checkFill(pathLocator, path) },
+            ...(parameterType !== 'none'
+                ? [
+                      { execute: () => checkSelectOption(typeParam, parameterType) },
+                      { execute: () => checkFillList(paramName, params) },
+                  ]
+                : []),
+            { execute: () => checkSelectOption(selectSuccess, successResponse.statusCode) },
             {
-                execute: element => checkVisible(element),
+                execute: () =>
+                    checkFillList2(keySuccess, valueSuccess, addSuccess, successResponse.fields),
             },
-            {
-                execute: () => checkSelectOption(methodLocator, method),
-            },
-            {
-                execute: () => checkFill(pathLocator, path),
-            },
-            {
-                execute: () => checkSelectOption(typeParam, parameterType),
-            },
-            {
-                execute: async () => {
-                    const screenshot = await page.screenshot({
-                        fullPage: true,
-                        animations: 'disabled',
-                    });
-
-                    return {
-                        status: 'info',
-                        typeInfo: 'screenshot',
-                        description: 'Configuración del Endpoint completada',
-                        screenshot: screenshot.toString('base64'),
-                    };
-                },
-            },
+            { execute: () => checkSelectOption(selectError, errorResponse.statusCode) },
+            { execute: () => checkFillList2(keyError, valueError, addError, errorResponse.fields) },
         ],
     });
 }
