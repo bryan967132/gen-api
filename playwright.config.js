@@ -4,6 +4,7 @@ export default defineConfig({
     testDir: './tests',
     workers: 1,
     fullyParallel: false,
+    timeout: 120000,
 
     reporter: [['list'], ['./tests/reporters/customReporter.js']],
 

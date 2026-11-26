@@ -1,4 +1,4 @@
-import { escapeHTML } from './format.js';
+import { escapeHTML, stripANSI } from './format.js';
 
 export function getHTML(tests, { total, passed, failed }) {
     const labels = {
@@ -79,10 +79,15 @@ export function getHTML(tests, { total, passed, failed }) {
             .map(
                 item => `
         <div class="validation-item${item.typeInfo === 'list' ? ' list-validation' : ''}">
-            <span class="${item.status}">${labels[item.status]}</span>
-            ${
+            <span class="${item.status}">${labels[item.status]}</span>${
                 item.typeInfo !== 'list'
-                    ? `<span>${escapeHTML(item.description)}</span>`
+                    ? `
+                <span>${escapeHTML(item.description)}${
+                    item.error
+                        ? `
+                <p class="error">${escapeHTML(stripANSI(item.error))}</p>`
+                        : ''
+                }</span>`
                     : item.description
             }${renderScreenshot(item.screenshot)}
         </div>`
@@ -99,7 +104,9 @@ export function getHTML(tests, { total, passed, failed }) {
     <div class="event">
         <div class="event-description">
             <span class="${status}">${labels[status]}</span>
-            <span class="event-text">${escapeHTML(item.description)}</span>${renderScreenshot(item.screenshot)}
+            <span class="event-text">${escapeHTML(item.description)}${
+                item.error ? `<p class="error">${escapeHTML(stripANSI(item.error))}</p>` : ''
+            }</span>${renderScreenshot(item.screenshot)}
         </div>
     </div>`;
                 }

@@ -8,9 +8,13 @@ import {
     validateDragAndDrop,
     fillRouteCard,
     fillEndpointCard,
+    setSettings,
+    isVisible,
+    isVisibleLocator,
 } from '../../tools/validations.js';
-import { reportInfoSS, reportPassSS } from '../../tools/reportLogger.js';
+import { reportInfoSS, reportPassSS, reportFail } from '../../tools/reportLogger.js';
 
+/** @typedef {import('@playwright/test').Locator} Locator */
 /** @typedef {import('@playwright/test').Page} Page */
 /** @typedef {import('@playwright/test').TestInfo} TestInfo */
 /** @typedef {import('../screens/Elements.js').PageElement} PageElement */
@@ -127,6 +131,26 @@ export default class GenAPI {
         fillEndpointCard(this.#page, this.#testInfo, elementName, element, attribs, data);
 
     /**
+     * Configura las opciones de generación y descarga del proyecto.
+     *
+     * @param {string} actionName - Nombre de la acción en el reporte.
+     * @param {Object} components - Componentes utilizados para configurar el proyecto.
+     * @param {PageElement} components.checkEnv - Checkbox de variables de entorno.
+     * @param {PageElement} components.switchEnv - Control del checkbox de variables de entorno.
+     * @param {PageElement} components.checkBD - Checkbox del conector de base de datos.
+     * @param {PageElement} components.switchBD - Control del checkbox del conector de base de datos.
+     * @param {PageElement} components.selectBD - Selector del tipo de base de datos.
+     * @param {PageElement} components.buttonContinuar - Botón para continuar con la configuración.
+     * @param {PageElement} components.buttonDescargarCodigo - Botón para descargar el código generado.
+     * @param {Object} settings - Opciones de configuración del proyecto.
+     * @param {boolean} [settings.includeEnv=true] - Indica si se incluyen variables de entorno.
+     * @param {boolean} [settings.includeBD=false] - Indica si se incluye un conector de base de datos.
+     * @param {string} [settings.bdType='mysql'] - Tipo de base de datos que se desea configurar.
+     */
+    setSettings = (actionName, components, settings) =>
+        setSettings(this.#page, this.#testInfo, actionName, components, settings);
+
+    /**
      * Registra un mensaje informativo con captura de pantalla.
      * @param {string} title - Título del reporte.
      * @param {string} description - Descripción del reporte.
@@ -143,4 +167,45 @@ export default class GenAPI {
      */
     reportPassSS = (title, description) =>
         reportPassSS(this.#page, this.#testInfo, title, description);
+
+    /**
+     * Registra un paso exitoso con captura de pantalla.
+     * @param {string} title - Título del reporte.
+     * @param {string} description - Descripción del reporte.
+     * @param {Error} [error] - Descripción del reporte.
+     * @returns {Promise<void>}
+     */
+    reportFail = (title, description, error) => reportFail(title, description, error);
+
+    /**
+     * Verifica si un elemento es visible dentro del tiempo establecido.
+     *
+     * @param {Locator} element - Localizador del elemento.
+     * @param {number} [timeout=3000] - Tiempo máximo de espera en milisegundos.
+     * @returns {Promise<boolean>} Indica si el elemento es visible.
+     */
+    isVisible = (element, time) => isVisible(element, time);
+
+    /**
+     * Verifica si un elemento es visible dentro del tiempo establecido.
+     *
+     * @param {PageElement} element - Localizador del elemento.
+     * @param {string} [element.xpath] XPath del componente.
+     * @param {number} [timeout=3000] - Tiempo máximo de espera en milisegundos.
+     * @returns {Promise<boolean>} Indica si el elemento es visible.
+     */
+    isVisibleLocator = (element, time) => isVisibleLocator(this.#page, element, time);
+
+    /**
+     * Obtiene el texto de un elemento.
+     *
+     * @param {PageElement} element - Localizador del elemento.
+     * @param {string} [element.xpath] XPath del componente.
+     * @returns {Promise<boolean>} Indica si el elemento es visible.
+     */
+    getText = async ({ xpath }) => {
+        const locator = this.#page.locator(xpath);
+
+        return await locator.innerText();
+    };
 }

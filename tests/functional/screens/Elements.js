@@ -142,12 +142,13 @@ export const genAPI = {
         xpath: '//div[p[text()="Arrastra componentes aquí para empezar"]]/ul',
     },
     componentRuta: (searching = '@placeholder="Nombre de la ruta"') => ({
-        xpath: `//div[.//input[${searching}] and @draggable="true"]`,
+        xpath: `//div[div/div/input[${searching}] and @draggable="true"]`,
     }),
     componentEndpoint: (searching = '@placeholder="/endpoint"') => ({
         xpath: `//div[div/div/input[${searching}] and @draggable="true"]`,
     }),
     attribsEndpoint: type => ({
+        buttonColapse: './div/div/button[*[local-name()="svg"]]',
         selectMethod: './/div[input[@placeholder="/endpoint"]]/select',
         inputPath: './/input[@placeholder="/endpoint"]',
         selectType: './/div[label[text()="Tipo de Parámetros"]]/select',
@@ -180,4 +181,35 @@ export const genAPI = {
                 './/div[label[text()="Respuesta de Error"]]/div[label[text()="Agregar Campo a la Respuesta"]]//button',
         },
     }),
+    modalConfiguracion: {
+        checkEnv: {
+            xpath: '//label[.//h3[text()="Variables de Entorno"]]//input',
+        },
+        switchEnv: {
+            xpath: '//label[.//h3[text()="Variables de Entorno"]]/div[input]/div',
+        },
+        checkBD: {
+            xpath: '//label[.//h3[text()="Conector de Base de Datos"]]//input',
+        },
+        switchBD: {
+            xpath: '//label[.//h3[text()="Conector de Base de Datos"]]/div[input]/div',
+        },
+        selectBD: {
+            xpath: '//div[label[text()="Tipo de Base de Datos"]]/select',
+        },
+        buttonContinuar: {
+            xpath: '//div[.//h2[text()="Configuración del Proyecto"]]/div/button[text()="Continuar"]',
+        },
+        buttonDescargarCodigo: {
+            xpath: '//div[.//h2[text()="Código de la API: "]]/div/div/button[text()="Descargar Código"]',
+        },
+    },
+    modalErrorValidacion: {
+        labelErrores: {
+            xpath: '//div[h2[text()="Errores de Validación"]]/div[@id="swal2-html-container"]//pre',
+        },
+        buttonEntendido: {
+            xpath: '//div[h2[text()="Errores de Validación"]]//button[text()="Entendido"]',
+        },
+    },
 };

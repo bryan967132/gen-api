@@ -1,8 +1,54 @@
 import { escapeHTML } from '../utils/format.js';
 import { expect } from '../tools/driver.js';
-import { validateComponent } from '../reporters/reportManager.js';
+import { validateComponent } from '../reporters/validateComponent.js';
 
+/** @typedef {import('@playwright/test').Locator} Locator */
+/** @typedef {import('@playwright/test').Page} Page */
+/** @typedef {import('@playwright/test').TestInfo} TestInfo */
 /** @typedef {import('../functional/screens/Elements.js').PageElement} PageElement */
+
+/**
+ * Verifica si un elemento es visible dentro del tiempo establecido.
+ *
+ * @param {Locator} element - Localizador del elemento.
+ * @param {number} [timeout=3000] - Tiempo máximo de espera en milisegundos.
+ * @returns {Promise<boolean>} Indica si el elemento es visible.
+ */
+export const isVisible = async (element, timeout = 3000) => {
+    try {
+        await element.waitFor({
+            state: 'visible',
+            timeout,
+        });
+
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+/**
+ * Verifica si un elemento es visible dentro del tiempo establecido.
+ *
+ * @param {Page} page Página de Playwright.
+ * @param {PageElement} element - Localizador del elemento.
+ * @param {string} [element.xpath] XPath del componente.
+ * @param {number} [timeout=3000] - Tiempo máximo de espera en milisegundos.
+ * @returns {Promise<boolean>} Indica si el elemento es visible.
+ */
+export const isVisibleLocator = async (page, { xpath }, timeout = 3000) => {
+    try {
+        const locator = page.locator(xpath);
+        await locator.waitFor({
+            state: 'visible',
+            timeout,
+        });
+
+        return true;
+    } catch {
+        return false;
+    }
+};
 
 /**
  * Ejecuta una validación y devuelve su resultado para el reporte.
@@ -14,14 +60,22 @@ import { validateComponent } from '../reporters/reportManager.js';
  * @returns {Promise<{status: string, description: string, error?: string}>}
  */
 async function check(assertion, success, failure, severity = 'failed') {
+    const startTime = new Date().toISOString();
+    const start = performance.now();
+
     try {
         await assertion();
 
         return {
             status: 'passed',
             description: success,
+            startTime,
+            duration: Math.round(performance.now() - start),
         };
     } catch (error) {
+        console.log(error);
+
+        const duration = Math.round(performance.now() - start);
         let description;
 
         try {
@@ -31,12 +85,12 @@ async function check(assertion, success, failure, severity = 'failed') {
             console.log(e);
         }
 
-        console.log(error);
-
         return {
             status: severity,
             description,
             error: error.message,
+            startTime,
+            duration,
         };
     }
 }
@@ -44,7 +98,7 @@ async function check(assertion, success, failure, severity = 'failed') {
 /**
  * Valida la visibilidad de un componente.
  *
- * @param {import('@playwright/test').Locator} element
+ * @param {Locator} element
  * @param {string} [name='Componente']
  */
 const checkVisible = (element, name = 'Componente') =>
@@ -57,7 +111,7 @@ const checkVisible = (element, name = 'Componente') =>
 /**
  * Valida el estado habilitado o deshabilitado.
  *
- * @param {import('@playwright/test').Locator} element
+ * @param {Locator} element
  * @param {boolean} enabled Estado esperado.
  */
 const checkEnabled = (element, enabled = true) =>
@@ -78,7 +132,7 @@ const checkEnabled = (element, enabled = true) =>
 /**
  * Valida el texto mostrado por un componente.
  *
- * @param {import('@playwright/test').Locator} element
+ * @param {Locator} element
  * @param {string} text Texto esperado.
  */
 const checkText = (element, text) =>
@@ -98,7 +152,7 @@ const checkText = (element, text) =>
 /**
  * Valida el placeholder de un Input Text.
  *
- * @param {import('@playwright/test').Locator} element
+ * @param {Locator} element
  * @param {string} placeholder Placeholder esperado.
  */
 const checkPlaceholder = (element, placeholder) =>
@@ -117,7 +171,7 @@ const checkPlaceholder = (element, placeholder) =>
 /**
  * Valida el valor esperado de un Input Text.
  *
- * @param {import('@playwright/test').Locator} element
+ * @param {Locator} element
  * @param {string} value Valor esperado.
  */
 const checkValue = (element, value) =>
@@ -136,7 +190,7 @@ const checkValue = (element, value) =>
 /**
  * Escribe un valor en un Input Text y valida el resultado.
  *
- * @param {import('@playwright/test').Locator} element
+ * @param {Locator} element
  * @param {string} value Valor que se escribirá.
  */
 const checkFill = (element, value) =>
@@ -159,7 +213,7 @@ const checkFill = (element, value) =>
  * Ingresa una lista de valores en un mismo input,
  * presionando Enter después de cada ingreso.
  *
- * @param {import('@playwright/test').Locator} element
+ * @param {Locator} element
  * @param {string[]} values Valores a ingresar.
  */
 const checkFillList = (element, values) =>
@@ -179,9 +233,9 @@ const checkFillList = (element, values) =>
  * Ingresa una lista de valores en un mismo input,
  * presionando Enter después de cada ingreso.
  *
- * @param {import('@playwright/test').Locator} element1
- * @param {import('@playwright/test').Locator} element2
- * @param {import('@playwright/test').Locator} buttonAdd
+ * @param {Locator} element1
+ * @param {Locator} element2
+ * @param {Locator} buttonAdd
  * @param {string[]} values Valores a ingresar.
  */
 const checkFillList2 = (element1, element2, buttonAdd, values) =>
@@ -202,7 +256,7 @@ const checkFillList2 = (element1, element2, buttonAdd, values) =>
 /**
  * Realiza un clic sobre un componente.
  *
- * @param {import('@playwright/test').Locator} element
+ * @param {Locator} element
  */
 const checkClick = element =>
     check(
@@ -214,12 +268,18 @@ const checkClick = element =>
 /**
  * Arrastra un componente hacia un área de destino.
  *
- * @param {import('@playwright/test').Locator} source
- * @param {import('@playwright/test').Locator} target
+ * @param {Locator} source
+ * @param {Locator} target
  */
 const checkDragAndDrop = (source, target) =>
     check(
-        () => source.dragTo(target),
+        () =>
+            source.dragTo(target, {
+                targetPosition: {
+                    x: 10,
+                    y: 10,
+                },
+            }),
         'Componente arrastrado y soltado correctamente',
         () => 'No se pudo arrastrar y soltar el componente'
     );
@@ -227,7 +287,7 @@ const checkDragAndDrop = (source, target) =>
 /**
  * Selecciona una opción de un Select y valida su valor.
  *
- * @param {import('@playwright/test').Locator} element
+ * @param {Locator} element
  * @param {string} value Valor de la opción a seleccionar.
  */
 const checkSelectOption = (element, value) =>
@@ -244,7 +304,7 @@ const checkSelectOption = (element, value) =>
 /**
  * Desplaza la pantalla hasta el componente indicado.
  *
- * @param {import('@playwright/test').Locator} element
+ * @param {Locator} element
  */
 const checkScroll = element =>
     check(
@@ -260,10 +320,34 @@ const checkScroll = element =>
     );
 
 /**
+ * Cambia y valida el estado de un checkbox mediante su componente de control.
+ *
+ * @param {Locator} element - Localizador del input checkbox.
+ * @param {Locator} control - Localizador del componente que permite interactuar con el checkbox.
+ * @param {boolean} checked - Estado esperado del checkbox (true: marcado, false: desmarcado).
+ * @returns {Promise<Object>} Resultado de la validación.
+ */
+const checkCheckbox = (element, control, checked) =>
+    check(
+        async () => {
+            if ((await element.isChecked()) !== checked) {
+                await control.click();
+            }
+
+            await expect(element).toBeChecked({ checked });
+        },
+        `Checkbox ${checked ? 'marcado' : 'desmarcado'} correctamente`,
+        async () =>
+            `Estado incorrecto del checkbox: se esperaba ${
+                checked ? 'marcado' : 'desmarcado'
+            }, se encontró ${(await element.isChecked()) ? 'marcado' : 'desmarcado'}`
+    );
+
+/**
  * Valida un componente Label.
  *
- * @param {import('@playwright/test').Page} page Página de Playwright.
- * @param {import('@playwright/test').TestInfo} testInfo Información de la prueba.
+ * @param {Page} page Página de Playwright.
+ * @param {TestInfo} testInfo Información de la prueba.
  * @param {string} elementName Nombre del componente para el reporte.
  * @param {PageElement} element Componente de validación.
  * @param {string} [element.text] Texto esperado.
@@ -275,7 +359,7 @@ export async function validateLabel(page, testInfo, elementName, { text, xpath }
 
     text = text ?? (await locator.innerText());
 
-    await validateComponent(testInfo, `Label ${elementName}`, {
+    await validateComponent(page, testInfo, `Label ${elementName}`, {
         locator,
         validations: [
             { execute: element => checkVisible(element) },
@@ -287,8 +371,8 @@ export async function validateLabel(page, testInfo, elementName, { text, xpath }
 /**
  * Valida un componente Card.
  *
- * @param {import('@playwright/test').Page} page Página de Playwright.
- * @param {import('@playwright/test').TestInfo} testInfo Información de la prueba.
+ * @param {Page} page Página de Playwright.
+ * @param {TestInfo} testInfo Información de la prueba.
  * @param {string} elementName Nombre del componente para el reporte.
  * @param {PageElement} element Componente de validación.
  * @param {string} [element.text] Texto esperado.
@@ -298,7 +382,7 @@ export async function validateLabel(page, testInfo, elementName, { text, xpath }
 export async function validateCard(page, testInfo, elementName, { text, description, xpath }) {
     const locator = page.locator(xpath);
 
-    await validateComponent(testInfo, `Card ${elementName}`, {
+    await validateComponent(page, testInfo, `Card ${elementName}`, {
         locator,
         validations: [
             { execute: element => checkVisible(element) },
@@ -311,8 +395,8 @@ export async function validateCard(page, testInfo, elementName, { text, descript
 /**
  * Valida un componente Input de tipo texto.
  *
- * @param {import('@playwright/test').Page} page Página de Playwright.
- * @param {import('@playwright/test').TestInfo} testInfo Información de la prueba.
+ * @param {Page} page Página de Playwright.
+ * @param {TestInfo} testInfo Información de la prueba.
  * @param {string} elementName Nombre del componente para el reporte.
  * @param {PageElement} element Componente de validación.
  * @param {string} element.placeholder Placeholder esperado.
@@ -332,20 +416,14 @@ export async function validateInputText(
         ? page.locator(xpath)
         : page.getByPlaceholder(placeholder, { exact: true });
 
-    await validateComponent(testInfo, `Input Text ${elementName}`, {
+    await validateComponent(page, testInfo, `Input Text ${elementName}`, {
         locator,
         validations: [
             { execute: element => checkVisible(element) },
             { execute: element => checkEnabled(element, enabled) },
             { execute: element => checkPlaceholder(element, placeholder) },
             { execute: element => checkValue(element, expectedValue) },
-            ...(fillValue !== undefined
-                ? [
-                      {
-                          execute: element => checkFill(element, fillValue),
-                      },
-                  ]
-                : []),
+            ...(fillValue ? [{ execute: element => checkFill(element, fillValue) }] : []),
         ],
     });
 }
@@ -353,8 +431,8 @@ export async function validateInputText(
 /**
  * Valida un componente Text Area.
  *
- * @param {import('@playwright/test').Page} page Página de Playwright.
- * @param {import('@playwright/test').TestInfo} testInfo Información de la prueba.
+ * @param {Page} page Página de Playwright.
+ * @param {TestInfo} testInfo Información de la prueba.
  * @param {string} elementName Nombre del componente para el reporte.
  * @param {PageElement} element Componente de validación.
  * @param {string} element.placeholder Placeholder esperado.
@@ -374,20 +452,14 @@ export async function validateTextArea(
         ? page.locator(xpath)
         : page.getByPlaceholder(placeholder, { exact: true });
 
-    await validateComponent(testInfo, `Text Area ${elementName}`, {
+    await validateComponent(page, testInfo, `Text Area ${elementName}`, {
         locator,
         validations: [
             { execute: element => checkVisible(element) },
             { execute: element => checkEnabled(element, enabled) },
             { execute: element => checkPlaceholder(element, placeholder) },
             { execute: element => checkValue(element, expectedValue) },
-            ...(fillValue !== undefined
-                ? [
-                      {
-                          execute: element => checkFill(element, fillValue),
-                      },
-                  ]
-                : []),
+            ...(fillValue ? [{ execute: element => checkFill(element, fillValue) }] : []),
         ],
     });
 }
@@ -395,8 +467,8 @@ export async function validateTextArea(
 /**
  * Valida un componente Button.
  *
- * @param {import('@playwright/test').Page} page Página de Playwright.
- * @param {import('@playwright/test').TestInfo} testInfo Información de la prueba.
+ * @param {Page} page Página de Playwright.
+ * @param {TestInfo} testInfo Información de la prueba.
  * @param {string} elementName Nombre del componente para el reporte.
  * @param {PageElement} element Componente de validación.
  * @param {string} element.text Texto esperado.
@@ -418,19 +490,13 @@ export async function validateButton(
               exact: true,
           });
 
-    await validateComponent(testInfo, `Button ${elementName}`, {
+    await validateComponent(page, testInfo, `Button ${elementName}`, {
         locator,
         validations: [
             { execute: element => checkVisible(element) },
             { execute: element => checkEnabled(element, enabled) },
             { execute: element => checkText(element, text) },
-            ...(isClicked
-                ? [
-                      {
-                          execute: element => checkClick(element),
-                      },
-                  ]
-                : []),
+            ...(isClicked ? [{ execute: element => checkClick(element) }] : []),
         ],
     });
 }
@@ -438,8 +504,8 @@ export async function validateButton(
 /**
  * Valida una lista.
  *
- * @param {import('@playwright/test').Page} page Página de Playwright.
- * @param {import('@playwright/test').TestInfo} testInfo Información de la prueba.
+ * @param {Page} page Página de Playwright.
+ * @param {TestInfo} testInfo Información de la prueba.
  * @param {string} elementName Nombre del componente.
  * @param {PageElement} element Componente de validación.
  * @param {string} element.xpath XPath de la lista.
@@ -449,7 +515,7 @@ export async function validateList(page, testInfo, elementName, { xpath }) {
     const locator = page.locator(xpath);
     const listItems = locator.locator('li');
 
-    await validateComponent(testInfo, `Lista ${elementName}`, {
+    await validateComponent(page, testInfo, `Lista ${elementName}`, {
         locator,
         validations: [
             { execute: element => checkVisible(element, 'Lista') },
@@ -501,9 +567,9 @@ export async function validateList(page, testInfo, elementName, { xpath }) {
 /**
  * Valida el arrastre de un componente hacia un área de destino.
  *
- * @param {import('@playwright/test').Page} page Página de Playwright.
- * @param {import('@playwright/test').TestInfo} testInfo Información de la prueba.
- * @param {string} elementName Nombre de la acción.
+ * @param {Page} page Página de Playwright.
+ * @param {TestInfo} testInfo Información de la prueba.
+ * @param {string} actionName Nombre de la acción.
  * @param {Record<string, PageElement>} elements Componentes de validación.
  * @param {PageElement} elements.source Componente de origen.
  * @param {PageElement} elements.target Área de destino.
@@ -513,13 +579,13 @@ export async function validateList(page, testInfo, elementName, { xpath }) {
 export async function validateDragAndDrop(
     page,
     testInfo,
-    elementName,
+    actionName,
     { source, target, expected }
 ) {
     const sourceLocator = page.locator(source.xpath);
     const targetLocator = page.locator(target.xpath);
     const expectedLocator = page.locator(expected.xpath).last();
-    await validateComponent(testInfo, `Drag & Drop: ${elementName}`, {
+    await validateComponent(page, testInfo, `Drag & Drop: ${actionName}`, {
         type: 'action',
         locator: sourceLocator,
         validations: [
@@ -535,9 +601,9 @@ export async function validateDragAndDrop(
 /**
  * Completa los campos de una Card Route.
  *
- * @param {import('@playwright/test').Page} page Página de Playwright.
- * @param {import('@playwright/test').TestInfo} testInfo Información de la prueba.
- * @param {string} elementName Nombre del componente.
+ * @param {Page} page Página de Playwright.
+ * @param {TestInfo} testInfo Información de la prueba.
+ * @param {string} actionName Nombre del componente.
  * @param {PageElement} element Opciones de la acción.
  * @param {string} element.xpath XPath de la Card.
  * @param {Object} data Datos de llenado
@@ -545,16 +611,17 @@ export async function validateDragAndDrop(
  * @param {string} data.path Path de la Ruta.
  * @returns {Promise<void>}
  */
-export async function fillRouteCard(page, testInfo, elementName, { xpath }, { name, path }) {
+export async function fillRouteCard(page, testInfo, actionName, { xpath }, { name, path }) {
     const locator = page.locator(xpath).last();
     const nameLocator = locator.locator('xpath=.//input[@placeholder="Nombre de la ruta"]');
     const pathLocator = locator.locator('xpath=.//input[@placeholder="/api"]');
 
-    await validateComponent(testInfo, `Ingreso De Datos ${elementName}`, {
+    await validateComponent(page, testInfo, `Ingreso De Datos ${actionName}`, {
         type: 'action',
         locator,
         validations: [
             { execute: element => checkVisible(element) },
+            { execute: () => checkScroll(nameLocator) },
             { execute: () => checkFill(nameLocator, name) },
             { execute: () => checkFill(pathLocator, path) },
         ],
@@ -564,25 +631,31 @@ export async function fillRouteCard(page, testInfo, elementName, { xpath }, { na
 /**
  * Completa los campos de una Card Endpoint.
  *
- * @param {import('@playwright/test').Page} page Página de Playwright.
- * @param {import('@playwright/test').TestInfo} testInfo Información de la prueba.
- * @param {string} elementName Nombre del componente.
+ * @param {Page} page Página de Playwright.
+ * @param {TestInfo} testInfo Información de la prueba.
+ * @param {string} actionName Nombre del componente.
  * @param {PageElement} element Opciones de la acción.
  * @param {string} element.xpath XPath de la Card.
- * @param {Object} data Datos de llenado
- * @param {string} data.method Metodo del Endpoint.
- * @param {string} data.path Path del Endpoint.
+ * @param {PageElement} attribs Opciones de la acción.
+ * @param {Object} data - Datos del endpoint.
+ * @param {string} data.method - Metodo del endpoint.
+ * @param {string} data.path - Path del endpoint.
+ * @param {string} data.parameterType - Tipo de parametros del endpoint.
+ * @param {string} data.params - Parametros del endpoint.
+ * @param {string} data.successResponse - Respuesta exitosa del endpoint.
+ * @param {string} data.errorResponse - Respuesta de error del endpoint.
  * @returns {Promise<void>}
  */
 export async function fillEndpointCard(
     page,
     testInfo,
-    elementName,
+    actionName,
     { xpath },
-    { selectMethod, inputPath, selectType, inputParam, success, error },
+    { buttonColapse, selectMethod, inputPath, selectType, inputParam, success, error },
     { method, path, parameterType, params, successResponse, errorResponse }
 ) {
     const locator = page.locator(xpath).last();
+    const btnColapse = locator.locator(`xpath=${buttonColapse}`);
     const methodLocator = locator.locator(`xpath=${selectMethod}`);
     const pathLocator = locator.locator(`xpath=${inputPath}`);
     const typeParam = locator.locator(`xpath=${selectType}`);
@@ -610,11 +683,12 @@ export async function fillEndpointCard(
         await expect(buttons).toHaveCount(count - i - 1);
     }
 
-    await validateComponent(testInfo, `Ingreso De Datos ${elementName}`, {
+    await validateComponent(page, testInfo, `Ingreso De Datos ${actionName}`, {
         type: 'action',
         locator,
         validations: [
             { execute: element => checkVisible(element) },
+            { execute: () => checkScroll(methodLocator) },
             { execute: () => checkSelectOption(methodLocator, method) },
             { execute: () => checkFill(pathLocator, path) },
             ...(parameterType !== 'none'
@@ -630,6 +704,104 @@ export async function fillEndpointCard(
             },
             { execute: () => checkSelectOption(selectError, errorResponse.statusCode) },
             { execute: () => checkFillList2(keyError, valueError, addError, errorResponse.fields) },
+            {
+                execute: async () => {
+                    const screenshot = await page.screenshot({
+                        fullPage: true,
+                        animations: 'disabled',
+                    });
+
+                    return {
+                        status: 'info',
+                        typeInfo: 'screenshot',
+                        description: `Endpoint Desplegado`,
+                        screenshot: screenshot.toString('base64'),
+                    };
+                },
+            },
+            { execute: () => checkClick(btnColapse) },
         ],
     });
+}
+
+/**
+ * Configura las opciones de generación y descarga del proyecto.
+ *
+ * @param {Page} page Página de Playwright.
+ * @param {TestInfo} testInfo Información de la prueba.
+ * @param {string} actionName - Nombre de la acción en el reporte.
+ * @param {Object} components - Componentes utilizados para configurar el proyecto.
+ * @param {PageElement} components.checkEnv - Checkbox de variables de entorno.
+ * @param {PageElement} components.switchEnv - Control del checkbox de variables de entorno.
+ * @param {PageElement} components.checkBD - Checkbox del conector de base de datos.
+ * @param {PageElement} components.switchBD - Control del checkbox del conector de base de datos.
+ * @param {PageElement} components.selectBD - Selector del tipo de base de datos.
+ * @param {PageElement} components.buttonContinuar - Botón para continuar con la configuración.
+ * @param {PageElement} components.buttonDescargarCodigo - Botón para descargar el código generado.
+ * @param {Object} settings - Opciones de configuración del proyecto.
+ * @param {boolean} [settings.includeEnv=true] - Indica si se incluyen variables de entorno.
+ * @param {boolean} [settings.includeBD=false] - Indica si se incluye un conector de base de datos.
+ * @param {string} [settings.bdType='mysql'] - Tipo de base de datos que se desea configurar.
+ * @returns {Promise<void>}
+ */
+export async function setSettings(
+    page,
+    testInfo,
+    actionName,
+    { checkEnv, switchEnv, checkBD, switchBD, selectBD, buttonContinuar, buttonDescargarCodigo },
+    { includeEnv = true, includeBD = false, bdType = 'mysql' }
+) {
+    const chckEnv = page.locator(checkEnv.xpath);
+    const swEnv = page.locator(switchEnv.xpath);
+    const chckBD = page.locator(checkBD.xpath);
+    const swBD = page.locator(switchBD.xpath);
+    const slctBD = page.locator(selectBD.xpath);
+    const btnContinuar = page.locator(buttonContinuar.xpath);
+    const btnDescargar = page.locator(buttonDescargarCodigo.xpath);
+    const downloadPromise = page.waitForEvent('download');
+
+    await validateComponent(page, testInfo, `Seleccion De Opciones ${actionName}`, {
+        type: 'action',
+        undefined,
+        validations: [
+            { execute: () => checkCheckbox(chckEnv, swEnv, includeEnv) },
+            { execute: () => checkCheckbox(chckBD, swBD, includeBD) },
+            ...(includeBD ? [{ execute: () => checkSelectOption(slctBD, bdType) }] : []),
+            {
+                execute: async () => {
+                    const screenshot = await page.screenshot({
+                        fullPage: true,
+                        animations: 'disabled',
+                    });
+
+                    return {
+                        status: 'info',
+                        typeInfo: 'screenshot',
+                        description: `Configuracion Del Proyecto`,
+                        screenshot: screenshot.toString('base64'),
+                    };
+                },
+            },
+            { execute: () => checkClick(btnContinuar) },
+            {
+                execute: async () => {
+                    const screenshot = await page.screenshot({
+                        fullPage: true,
+                        animations: 'disabled',
+                    });
+
+                    return {
+                        status: 'info',
+                        typeInfo: 'screenshot',
+                        description: `Codigo de la API`,
+                        screenshot: screenshot.toString('base64'),
+                    };
+                },
+            },
+            { execute: () => checkClick(btnDescargar) },
+        ],
+    });
+
+    const download = await downloadPromise;
+    await download.saveAs(`downloads/${download.suggestedFilename()}`);
 }

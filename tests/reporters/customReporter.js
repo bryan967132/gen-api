@@ -41,6 +41,8 @@ class CustomReporter {
             actualResult,
             conclusion: expectedResult === actualResult ? 'passed' : 'failed',
             items: [],
+            startTime: result.startTime.toISOString(),
+            duration: result.duration,
         };
 
         // Procesar los adjuntos

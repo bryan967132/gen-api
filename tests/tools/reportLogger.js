@@ -81,25 +81,19 @@ export async function reportInfoSS(page, testInfo, title, description) {
 }
 
 /**
- * Registra un fallo y toma una captura.
+ * Registra un fallo.
  */
-export async function reportFail(testInfo, title, description, error) {
-    await reportEvent(testInfo, {
-        title,
-        description,
-        status: 'info',
-    });
-
-    throw new Error(`Fallo en ${title}: ${error?.message || description || 'Validación fallida'}`);
+export async function reportFail(title, description, error) {
+    throw new Error(`${title}\n${error?.message || description || 'Validación fallida'}`);
 }
 
 /**
- * Alias para mantener compatibilidad con las llamadas existentes.
+ * Registra un fallo y toma una captura.
  */
 export async function reportFailSS(page, testInfo, title, description, error) {
     await reportScenarioSS(page, testInfo, title, description, 'failed', error);
 
-    throw new Error(`Fallo en ${title}: ${error?.message || description || 'Validación fallida'}`);
+    throw new Error(`${title}\n${error?.message || description || 'Validación fallida'}`);
 }
 
 /**

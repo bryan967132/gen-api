@@ -9,6 +9,7 @@
  * @param {'component'|'action'} [options.type='component'] Tipo de validación.
  */
 export async function validateComponent(
+    page,
     testInfo,
     componentName,
     { locator, validations, type = 'component' }
@@ -24,6 +25,8 @@ export async function validateComponent(
                 description: result.description,
                 typeInfo: result.typeInfo ?? 'text',
                 ...(result.screenshot && { screenshot: result.screenshot }),
+                ...(result.startTime && { startTime: result.startTime }),
+                ...(result.duration && { duration: result.duration }),
                 ...(result.error && { error: result.error }),
             });
         } catch (error) {
@@ -38,7 +41,7 @@ export async function validateComponent(
 
     let screenshotAction;
     if (type === 'action') {
-        const screenshot = await locator.page().screenshot({
+        const screenshot = await page.screenshot({
             fullPage: true,
             animations: 'disabled',
         });
